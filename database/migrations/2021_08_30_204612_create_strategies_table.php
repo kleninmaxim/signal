@@ -15,7 +15,7 @@ class CreateStrategiesTable extends Migration
     {
         Schema::create('strategies', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->string('name')->unique();
         });
     }
 

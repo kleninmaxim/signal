@@ -8,4 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class StrategyDefaultOption extends Model
 {
     use HasFactory;
+
+    protected $guarded = [];
+
+    public $timestamps = false;
 }

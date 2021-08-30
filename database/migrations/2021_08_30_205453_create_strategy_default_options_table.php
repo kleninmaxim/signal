@@ -15,7 +15,12 @@ class CreateStrategyDefaultOptionsTable extends Migration
     {
         Schema::create('strategy_default_options', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->string('exchange');
+            $table->foreignId('strategy_id');
+            $table->string('timeframe');
+            $table->json('options');
+
+            $table->foreign('strategy_id')->references('id')->on('strategies')->onDelete('cascade');
         });
     }
 

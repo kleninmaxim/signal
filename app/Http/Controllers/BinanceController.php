@@ -63,32 +63,29 @@ class BinanceController extends Controller
 
         $pairs = $this->binance->getAllPairs();
 
-        $length_emas = [
-            ['fast' => 50, 'slow' => 100],
-            ['fast' => 100, 'slow' => 200],
-            ['fast' => 200, 'slow' => 400]
-        ];
+        $options = Strategy::getOptions('binance', 'MACD', $timeframe);
 
         foreach ($pairs as $pair) {
 
             $candles = $this->binance->getCandles($pair->pair, $timeframe);
 
-            foreach ($length_emas as $length_ema) {
+            foreach ($options as $option) {
 
                 $signal = Strategy::proccessMacd(
-                    Strategy::macd(
-                        $candles,
-                        $length_ema['fast'],
-                        $length_ema['slow']
-                    ),
+                    $candles,
+                    $option['fast'],
+                    $option['slow'],
+                    $option['signal'],
                     $after
                 );
+
+                debug($signal, true);
 
                 if ($this->sendMessageOrNot($signal, $pair)) {
 
                     $message =
                         'BINANCE' . "\n" .
-                        'MACD (' . $length_ema['fast'] . ', ' . $length_ema['slow'] . ').' . "\n" .
+                        'MACD (' . $option['fast'] . ', ' . $option['slow'] . ').' . "\n" .
                         'Pair: ' . $pair->pair . '.' . "\n" .
                         'Timeframe: ' . $timeframe . '.' . "\n" .
                         'Signal: ' . $signal;

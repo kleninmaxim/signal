@@ -94,11 +94,7 @@ class TinkoffController extends Controller
 
         $tickers = $this->tinkoff->getAllTickers();
 
-        $length_emas = [
-            ['fast' => 50, 'slow' => 100],
-            ['fast' => 100, 'slow' => 200],
-            ['fast' => 200, 'slow' => 400]
-        ];
+        $options = Strategy::getOptions('tinkoff', 'MACD', $timeframe);
 
         foreach ($tickers as $ticker) {
 
@@ -106,14 +102,13 @@ class TinkoffController extends Controller
 
                 $candles = $this->tinkoff->getCandles($ticker, $timeframe);
 
-                foreach ($length_emas as $length_ema) {
+                foreach ($options as $option) {
 
                     $signal = Strategy::proccessMacd(
-                        Strategy::macd(
-                            $candles,
-                            $length_ema['fast'],
-                            $length_ema['slow']
-                        ),
+                        $candles,
+                        $option['fast'],
+                        $option['slow'],
+                        $option['signal'],
                         $after
                     );
 
@@ -121,7 +116,7 @@ class TinkoffController extends Controller
 
                         $message =
                             'Tinkoff' . "\n" .
-                            'MACD (' . $length_ema['fast'] . ', ' . $length_ema['slow'] . ').' . "\n" .
+                            'MACD (' . $option['fast'] . ', ' . $option['slow'] . ').' . "\n" .
                             'Ticker: ' . $ticker->ticker . '.' . "\n" .
                             'Timeframe: ' . $timeframe . '.' . "\n" .
                             'Signal: ' . $signal;

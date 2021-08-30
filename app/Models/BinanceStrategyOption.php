@@ -8,4 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class BinanceStrategyOption extends Model
 {
     use HasFactory;
+
+    protected $guarded = [];
+
+    public $timestamps = false;
 }

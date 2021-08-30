@@ -15,7 +15,13 @@ class CreateTinkoffStrategyOptionsTable extends Migration
     {
         Schema::create('tinkoff_strategy_options', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->foreignId('tinkoff_ticker_id');
+            $table->foreignId('strategy_id');
+            $table->string('timeframe');
+            $table->json('options');
+
+            $table->foreign('tinkoff_ticker_id')->references('id')->on('tinkoff_tickers')->onDelete('cascade');
+            $table->foreign('strategy_id')->references('id')->on('strategies')->onDelete('cascade');
         });
     }
 

@@ -2,6 +2,9 @@
 
 namespace App\Src;
 
+use App\Models\Strategy as S;
+use App\Models\StrategyDefaultOption;
+
 class Strategy
 {
 
@@ -9,13 +12,26 @@ class Strategy
     private static $long = 'LONG';
     private static $nothing = 'NOTHING';
 
-    public static function macd($candles, $fast_length_ema, $slow_length_ema, $signal_length = 9)
+    public static function getOptions($exchange, $strategy_name, $timeframe)
     {
-        
+        return json_decode(
+            StrategyDefaultOption::where([
+                ['exchange', $exchange],
+                ['strategy_id', S::where('name', $strategy_name)->first()->id],
+                ['timeframe', $timeframe],
+            ])->first()->options,
+            true
+        );
+
+    }
+
+    public static function macd($candles, $fast_length_ema, $slow_length_ema, $signal_length)
+    {
+
         if (count($candles) > $slow_length_ema + 2) {
-            
+
             $fast_ema = self::ema($candles, $fast_length_ema);
-            
+
             $slow_ema = self::ema($candles, $slow_length_ema);
 
             for ($i = $slow_length_ema; $i < count($candles); $i++) {
@@ -33,15 +49,17 @@ class Strategy
             }
 
             return $hist ?? [];
-            
+
         }
 
         return [];
 
     }
 
-    public static function proccessMacd($hist, $after = false)
+    public static function proccessMacd($candles, $fast_length_ema, $slow_length_ema, $signal_length, $after = false)
     {
+
+        $hist = self::macd($candles, $fast_length_ema, $slow_length_ema, $signal_length);
 
         if (empty($hist)) return self::$nothing;
 
@@ -109,7 +127,7 @@ class Strategy
         }
 
         return $ema;
-        
+
     }
 
 }

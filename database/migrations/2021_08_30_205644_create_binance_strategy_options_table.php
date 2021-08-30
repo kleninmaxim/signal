@@ -15,7 +15,13 @@ class CreateBinanceStrategyOptionsTable extends Migration
     {
         Schema::create('binance_strategy_options', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->foreignId('binance_pair_id');
+            $table->foreignId('strategy_id');
+            $table->string('timeframe');
+            $table->json('options');
+
+            $table->foreign('binance_pair_id')->references('id')->on('binance_pairs')->onDelete('cascade');
+            $table->foreign('strategy_id')->references('id')->on('strategies')->onDelete('cascade');
         });
     }
 
