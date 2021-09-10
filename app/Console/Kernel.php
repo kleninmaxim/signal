@@ -30,6 +30,10 @@ class Kernel extends ConsoleKernel
             ->everyMinute()
             ->appendOutputTo(storage_path('logs/record_tinkoff_ticker.log'));*/
 
+/*        $schedule->call('\App\Http\Controllers\BinanceController@loadCandles')
+            ->everyFifteenMinutes()
+            ->appendOutputTo(storage_path('logs/record_binance_pair.log'));*/
+
         $schedule->call('\App\Http\Controllers\TinkoffController@updateAllCandles')
             ->weekdays()
             ->dailyAt('4:00')

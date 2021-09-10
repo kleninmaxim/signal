@@ -16,6 +16,13 @@ class TinkoffController extends Controller
         $this->tinkoff = new Tinkoff();
     }
 
+    public function test()
+    {
+
+        return $this->tinkoff->test();
+
+    }
+
     public function addNewTicker(Request $request)
     {
 

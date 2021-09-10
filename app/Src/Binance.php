@@ -67,7 +67,7 @@ class Binance
 
         foreach ($candles as $key => $candle) {
 
-            $candle['timestamp'] = $candle[0] / 1000;
+            $candle['time_start'] = $candle[0] / 1000;
             $candle['open'] = $candle[1];
             $candle['high'] = $candle[2];
             $candle['low'] = $candle[3];

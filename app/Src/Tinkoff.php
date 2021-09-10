@@ -13,6 +13,7 @@ use jamesRUS52\TinkoffInvest\TIException;
 use jamesRUS52\TinkoffInvest\TIIntervalEnum;
 use jamesRUS52\TinkoffInvest\TISiteEnum;
 use App\Src\Telegram;
+use App\Src\StrategyTest;
 
 class Tinkoff
 {
@@ -30,6 +31,15 @@ class Tinkoff
 
         $this->tinkoff_telegram_token = config('api.telegram_token_2');
         $this->tinkoff_chat_id = config('api.chat_id_2');
+
+    }
+
+    public function test()
+    {
+
+        $stategy_test = new StrategyTest();
+
+        $stategy_test->testTinkoff();
 
     }
 
@@ -63,6 +73,8 @@ class Tinkoff
 
                 $this->deleteTickerQueue($ticker->ticker);
 
+                debug('No such ticker');
+
                 die();
 
             }
@@ -75,7 +87,7 @@ class Tinkoff
 
             $four_hour_candles = $this->getFourHoursCandles($hour_candles, $hours);
 
-            $day_candles = $this->getDayCandles($hour_candles, $hours);
+            $day_candles = $this->getDayCandlesAPI($ticker_data->getFigi());
 
             if ($this->checkCurrentTimeWithCandle($hour_candles)) array_pop($hour_candles);
 
@@ -84,6 +96,45 @@ class Tinkoff
             $this->insertHourCandle($hour_candles, $id);
             $this->insertFourHourCandle($four_hour_candles, $id);
             $this->insertDayCandle($day_candles, $id);
+
+            return true;
+
+        }
+
+        return false;
+
+    }
+
+    public function updateDayCandles()
+    {
+
+        $ticker = DB::table('tinkoff_tikers_queue')->select('ticker')->first();
+
+        if (!empty($ticker)) {
+
+            try {
+
+                $ticker_data = $this->client->getInstrumentByTicker($ticker->ticker);
+
+            } catch (TIException $e) {
+
+                $this->deleteTickerQueue($ticker->ticker);
+
+                debug('No such ticker');
+
+                die();
+
+            }
+
+            $day_candles = $this->getDayCandlesAPI($ticker_data->getFigi());
+
+            if ($this->checkCurrentTimeWithCandle($day_candles)) array_pop($day_candles);
+
+            $id = TinkoffTicker::where('figi', $ticker_data->getFigi())->first()->toArray();
+
+            $this->deleteTickerQueue($ticker->ticker);
+
+            $this->insertDayCandle($day_candles, $id['id']);
 
             return true;
 
@@ -301,6 +352,8 @@ class Tinkoff
 
             }
 
+            if (empty($candles)) break;
+
             foreach ($candles as $candle) {
 
                 $hour_candles_pre['open'] = $candle->getOpen();
@@ -317,6 +370,59 @@ class Tinkoff
         }
 
         return $hour_candles ?? [];
+
+    }
+
+    private function getDayCandlesAPI($figi, $interval = null)
+    {
+
+        $interval = $interval ?? $this->interval;
+
+        for ($i = 1; $i < $interval; $i++) {
+
+            $from = new \DateTime();
+            $to = new \DateTime();
+
+            $from->sub(new \DateInterval('P' . 365 * $i . 'D'));
+            $to->sub(new \DateInterval('P' . 365 * ($i - 1) . 'D'));
+
+            try {
+
+                $candles = array_reverse($this->client->getHistoryCandles($figi, $from, $to, TIIntervalEnum::DAY));
+
+            } catch (TIException $e) {
+
+                debug('Can\'t get candles!!!');
+
+                $telegram = new Telegram(
+                    $this->tinkoff_telegram_token,
+                    $this->tinkoff_chat_id
+                );
+
+                $telegram->send('Can\'t get candles!!!');
+
+                die();
+
+            }
+
+            if (empty($candles)) break;
+
+            foreach ($candles as $candle) {
+
+                $day_candles_pre['open'] = $candle->getOpen();
+                $day_candles_pre['close'] = $candle->getClose();
+                $day_candles_pre['high'] = $candle->getHigh();
+                $day_candles_pre['low'] = $candle->getLow();
+                $day_candles_pre['volume'] = $candle->getVolume();
+                $day_candles_pre['time_start'] = Carbon::createFromTimestamp($candle->getTime()->getTimestamp(), 'Europe/Moscow')->toDateTimeString();
+
+                $day_candles[] = $day_candles_pre;
+
+            }
+
+        }
+
+        return $day_candles ?? [];
 
     }
 

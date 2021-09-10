@@ -53,6 +53,18 @@ Route::get('/telegram', [\App\Http\Controllers\TelegramBotController::class, 'te
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 
+    Route::get('/binance/loadCandles', [\App\Http\Controllers\BinanceController::class, 'loadCandles']);
+
+    Route::get('/binance/test', [\App\Http\Controllers\BinanceController::class, 'test']);
+
+    Route::get('/binance/myStrategy', [\App\Http\Controllers\BinanceController::class, 'myStrategy']);
+
+    Route::get('/binance/testEmaBinance', [\App\Http\Controllers\BinanceController::class, 'testEmaBinance']);
+
+
+
+    Route::get('/tinkoff/test', [\App\Http\Controllers\TinkoffController::class, 'test']);
+
     Route::get('/tinkoff/loadCandles', [\App\Http\Controllers\TinkoffController::class, 'loadCandles']);
 
     Route::get('/binance/getCandles/{pair}/{timeframe}', [\App\Http\Controllers\BinanceController::class, 'getCandles']);
@@ -62,7 +74,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/binance/notifyHourStrategies', [\App\Http\Controllers\BinanceController::class, 'notifyHourStrategies']);
 
     Route::post(
-        '/tinkoff/add-new-ticker', [\App\Http\Controllers\TinkoffController::class, 'addNewTicker']
+        '/tinkoff/add-new-ticker',
+        [\App\Http\Controllers\TinkoffController::class, 'addNewTicker']
     )->name('tinkoff_add_new_ticker_post');
 
 
