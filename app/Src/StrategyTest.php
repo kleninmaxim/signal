@@ -23,6 +23,485 @@ class StrategyTest
     {
 
 
+
+        $pairs = BinancePair::all()->toArray();
+
+        $pairs = BinancePair::where('pair', 'BTC/USDT')->get()->toArray();
+
+        foreach ($pairs as $pair) {
+
+            $candles = BinanceHourCandle::where('binance_pair_id', $pair['id'])
+                ->orderBy('time_start', 'desc')->skip(0)->take(50000)->get()->toArray();
+
+            $candles = array_reverse($candles);
+
+            $hist = Strategy::macd($candles, 100, 200, 9, true);
+
+            $signals = $this->getSignalMacd($hist);
+
+            if (!empty($signals)) {
+
+                $i = 0;
+
+                $consequences = [];
+
+                $sum = 0;
+
+                $prev = [];
+
+                $capital = [];
+
+                $consequences_percentage = [];
+
+                foreach ($signals as $key => $signal) {
+
+                    if (!empty($prev)) {
+
+                        if ($signal['signal'] == 'long') {
+
+                            $profit = $prev[$key - 1]['close'] - $signal['close'];
+
+                        } elseif ($signal['signal'] == 'short') {
+
+                            $profit = $signal['close'] - $prev[$key - 1]['close'];
+
+                        } else throw new \Exception();
+
+                        $capital_pre['profit_percentage'] = round($profit / $prev[$key - 1]['close'] * 100, 2);
+
+                        $capital_pre['time_start'] = $prev[$key - 1]['time_start'];
+
+                        $capital_pre['time_end'] = $signal['time_start'];
+
+                        if ($signal['signal'] == 'short') {
+
+                            $capital[] = $capital_pre;
+
+                            if ($profit <= 0) {
+
+                                $i++;
+
+                            } else {
+
+                                $consequences[] = $i;
+
+                                $i = 0;
+
+                            }
+                        }
+
+                    }
+
+                    unset($prev);
+
+                    $prev[$key] = $signal;
+
+                }
+
+                if (!empty($capital)) {
+
+                    foreach ($capital as $c) {
+
+                        $sum += $c['profit_percentage'];
+
+                    }
+
+                    $realTime = Carbon::now();
+
+                    $first = array_shift($capital);
+
+                    $diff = $realTime->diffInDays($first['time_start']);
+
+                    array_unshift($capital, $first);
+
+                    debug($sum);
+                    debug(round($sum / $diff * 365, 2));
+//                    debug($capital);
+
+                }
+
+                if (!empty($consequences)) {
+
+                    $consequences = array_count_values($consequences);
+
+                    ksort($consequences);
+
+                    foreach ($consequences as $key => $consequence) {
+
+                        $consequences_percentage[$key] = round($consequence / array_sum($consequences) * 100, 2);
+
+                    }
+
+                    // debug($consequences);
+
+                    if (!empty($consequences_percentage)) {
+
+                        $consequence_percentage_sum = [];
+
+                        $consequence_percentage_sum_prev = 0;
+
+                        foreach ($consequences_percentage as $key => $consequence_percentage) {
+
+                            $consequence_percentage_sum_prev += $consequence_percentage;
+
+                            $consequence_percentage_sum[$key] = $consequence_percentage_sum_prev;
+
+                        }
+
+                        debug($consequences_percentage);
+
+                        debug($consequence_percentage_sum);
+
+                    }
+
+                }
+
+            } else {
+
+                //debug($pair['pair'] . ' Not enough candles');
+
+            }
+
+        }
+
+    }
+
+    public function macd()
+    {
+
+
+        $pairs = BinancePair::all()->toArray();
+
+        $pairs = BinancePair::where('pair', 'BTC/USDT')->get()->toArray();
+
+        foreach ($pairs as $pair) {
+
+            $candles = BinanceHourCandle::where('binance_pair_id', $pair['id'])
+                ->orderBy('time_start', 'desc')->skip(0)->take(50000)->get()->toArray();
+
+            $candles = array_reverse($candles);
+
+            $hist = Strategy::macd($candles, 100, 200, 9, true);
+
+            $signals = $this->getSignalMacd($hist);
+
+            if (!empty($signals)) {
+
+                $i = 0;
+
+                $consequences = [];
+
+                $sum = 0;
+
+                $prev = [];
+
+                $capital = [];
+
+                $consequences_percentage = [];
+
+                foreach ($signals as $key => $signal) {
+
+                    if (!empty($prev)) {
+
+                        if ($signal['signal'] == 'long') {
+
+                            $profit = $prev[$key - 1]['close'] - $signal['close'];
+
+                        } elseif ($signal['signal'] == 'short') {
+
+                            $profit = $signal['close'] - $prev[$key - 1]['close'];
+
+                        } else throw new \Exception();
+
+                        $capital_pre['profit_percentage'] = round($profit / $prev[$key - 1]['close'] * 100, 2);
+
+                        $capital_pre['time_start'] = $prev[$key - 1]['time_start'];
+
+                        $capital_pre['time_end'] = $signal['time_start'];
+
+                        if ($signal['signal'] == 'short') {
+
+                            $capital[] = $capital_pre;
+
+                            if ($profit <= 0) {
+
+                                $i++;
+
+                            } else {
+
+                                $consequences[] = $i;
+
+                                $i = 0;
+
+                            }
+                        }
+
+                    }
+
+                    unset($prev);
+
+                    $prev[$key] = $signal;
+
+                }
+
+                if (!empty($capital)) {
+
+                    foreach ($capital as $c) {
+
+                        $sum += $c['profit_percentage'];
+
+                    }
+
+                    $realTime = Carbon::now();
+
+                    $first = array_shift($capital);
+
+                    $diff = $realTime->diffInDays($first['time_start']);
+
+                    array_unshift($capital, $first);
+
+                    debug($sum);
+                    debug(round($sum / $diff * 365, 2));
+//                    debug($capital);
+
+                }
+
+                if (!empty($consequences)) {
+
+                    $consequences = array_count_values($consequences);
+
+                    ksort($consequences);
+
+                    foreach ($consequences as $key => $consequence) {
+
+                        $consequences_percentage[$key] = round($consequence / array_sum($consequences) * 100, 2);
+
+                    }
+
+                    // debug($consequences);
+
+                    if (!empty($consequences_percentage)) {
+
+                        $consequence_percentage_sum = [];
+
+                        $consequence_percentage_sum_prev = 0;
+
+                        foreach ($consequences_percentage as $key => $consequence_percentage) {
+
+                            $consequence_percentage_sum_prev += $consequence_percentage;
+
+                            $consequence_percentage_sum[$key] = $consequence_percentage_sum_prev;
+
+                        }
+
+                        debug($consequences_percentage);
+
+                        debug($consequence_percentage_sum);
+
+                    }
+
+                }
+
+            } else {
+
+                //debug($pair['pair'] . ' Not enough candles');
+
+            }
+
+        }
+
+    }
+
+    public function macdEmaParabolicSar()
+    {
+
+        $pairs = BinancePair::all()->toArray();
+
+        $pairs = BinancePair::where('pair', 'BTC/USDT')->get()->toArray();
+
+        foreach ($pairs as $pair) {
+
+            $candles = BinanceFifteenMinuteCandle::where('binance_pair_id', $pair['id'])
+                ->orderBy('time_start', 'desc')->skip(50000)->take(50000)->get()->toArray();
+
+            $candles = array_reverse($candles);
+
+            $dots = Strategy::parabolicSar($candles);
+            $ema = array_filter(Strategy::ema($candles, 200));
+            $hist = Strategy::macd($candles, 100, 200, 9);
+
+            $min = min(count($dots), count($ema), count($hist), count($candles));
+
+            $dots = array_slice($dots, count($dots) - $min);
+            $ema = array_slice($ema, count($ema) - $min);
+            $hist = array_slice($hist, count($hist) - $min);
+            $candles = array_slice($candles, count($candles) - $min);
+
+            $strategies = [];
+
+            foreach ($candles as $key => $candle) {
+
+                $strategy_pre['close'] = $candle['close'];
+                $strategy_pre['high'] = $candle['high'];
+                $strategy_pre['low'] = $candle['low'];
+                $strategy_pre['time_start'] = $candle['time_start'];
+                $strategy_pre['dots'] = $dots[$key];
+                $strategy_pre['ema'] = $ema[$key];
+                $strategy_pre['hist'] = $hist[$key];
+
+                $strategies[] = $strategy_pre;
+
+            }
+
+            $this->proccessMacdEmaParabolic($strategies);
+
+            $i = 0;
+
+            $position = [];
+
+            $percentage = 2;
+
+            $prev = [];
+
+            $capital = [];
+
+            $consequences = [];
+
+            $consequences_percentage = [];
+
+            $sum = 0;
+
+            foreach ($strategies as $strategy) {
+
+                if (!empty($prev)) {
+
+                    if ($prev['dots'] == 'short' && $strategy['dots'] == 'long') {
+
+                        if ($strategy['ema'] == 'long' && $strategy['hist'] == 'long') {
+
+                            if ((1 + $percentage / 100) * $strategy['close'] < $strategy['profit']) {
+                                $strategy['profit'] = (1 + $percentage / 100) * $strategy['close'];
+
+                                $strategy['stop'] = (1 - $percentage / 100) * $strategy['close'];
+                            }
+
+                            $position = $strategy;
+
+                        }
+
+                    }
+
+                    if (!empty($position)) {
+
+                        if ($strategy['low'] <= $position['stop']) {
+
+                            $capital_pre['profit'] = $position['stop'] - $position['close'];
+
+                            $capital_pre['profit_percentage'] = round($capital_pre['profit'] / $position['close'] * 100, 2);
+
+                            $capital_pre['time_start'] = $position['time_start'];
+
+                            $capital[] = $capital_pre;
+
+                            $i++;
+
+                            $position = [];
+
+                        } elseif ($strategy['high'] >= $position['profit']) {
+
+                            $capital_pre['profit'] = $position['profit'] - $position['close'];
+
+                            $capital_pre['profit_percentage'] = round($capital_pre['profit'] / $position['close'] * 100, 2);
+
+                            $capital_pre['time_start'] = $position['time_start'];
+
+                            $capital[] = $capital_pre;
+
+                            $consequences[] = $i;
+
+                            $i = 0;
+
+                            $position = [];
+
+                        }
+
+                    }
+
+                }
+
+                $prev = $strategy;
+
+            }
+
+            if (!empty($capital)) {
+
+                foreach ($capital as $c) {
+
+                    $sum += $c['profit_percentage'];
+
+                    $profit_percentage[] = $c['profit_percentage'];
+
+                }
+
+                $realTime = Carbon::now();
+
+                $first = array_shift($capital);
+
+                $diff = $realTime->diffInDays($first['time_start']);
+
+                array_unshift($capital, $first);
+
+/*                debug($sum ?? []);
+                debug(round($sum / $diff * 365, 2));*/
+
+            }
+
+            if (!empty($consequences)) {
+
+                $consequences = array_count_values($consequences);
+
+                ksort($consequences);
+
+                foreach ($consequences as $key =>$consequence) {
+
+                    $consequences_percentage[$key] = round($consequence / array_sum($consequences) * 100, 2);
+
+                }
+
+                //debug($consequences);
+
+                if (!empty($consequences_percentage)) {
+
+                    $consequence_percentage_sum = [];
+
+                    $consequence_percentage_sum_prev = 0;
+
+                    foreach ($consequences_percentage as $key =>  $consequence_percentage) {
+
+                        $consequence_percentage_sum_prev += $consequence_percentage;
+
+                        $consequence_percentage_sum[$key] = $consequence_percentage_sum_prev;
+
+                    }
+
+                    debug($consequences_percentage);
+
+                    debug($consequence_percentage_sum);
+
+                }
+
+            }
+
+            debug($capital ?? [], true);
+
+        }
+
+    }
+
+    public function storetestStrategyBinance()
+    {
+
+
         $pairs = BinancePair::all()->toArray();
 
         $pairs = BinancePair::where('pair', 'BTC/USDT')->get()->toArray();
@@ -30,7 +509,7 @@ class StrategyTest
         foreach ($pairs as $pair) {
 
             $candles = BinanceThirtyMinuteCandle::where('binance_pair_id', $pair['id'])
-                ->orderBy('time_start', 'desc')->take(1000)->get()->toArray();
+                ->orderBy('time_start', 'desc')->take(50000)->get()->toArray();
 
             $candles = array_reverse($candles);
 
@@ -67,6 +546,8 @@ class StrategyTest
 
             $i = 0;
 
+            $percentage = 10;
+
             foreach ($strategies as $strategy) {
 
                 if (isset($prev_dot)) {
@@ -77,15 +558,23 @@ class StrategyTest
 
                             if ($strategy['dots'] == $strategy['ema'] && $strategy['dots'] == $strategy['hist']) {
 
-                                $profit = $strategy['profit'];
-
-                                $stop = $strategy['stop'];
-
                                 $close = $strategy['close'];
+
+                                if ((1 + $percentage / 100) * $close < $strategy['profit']) {
+                                    $profit = (1 + $percentage / 100) * $close;
+
+                                    $stop = (1 - $percentage / 100) * $close;
+                                } else {
+                                    $profit = $strategy['profit'];
+
+                                    $stop = $strategy['stop'];
+                                }
 
                                 $time_start = $strategy['time_start'];
 
                                 $current_dot = $strategy['dots'];
+
+                                $position = $strategy['dots'];
 
                             }
 
@@ -99,31 +588,35 @@ class StrategyTest
 
                         $capital_pre['close'] = $close;
 
+                        $capital_pre['position'] = $position;
+
                         if ($current_dot == 'long') {
-
-                            if ($strategy['high'] >= $profit) {
-
-                                $capital_pre['profit'] = $profit - $close;
-
-                                $capital[] = $capital_pre;
-
-                                $profit = 0;
-
-                                $stop = 0;
-
-                                if ($capital_pre['profit'] <= 0) {
-                                    $i++;
-                                } else {
-                                    $conseq[] = $i;
-                                    $i = 0;
-                                }
-
-                            }
 
                             if ($strategy['low'] <= $stop) {
 
                                 $capital_pre['profit'] = $stop - $close;
 
+                                $capital_pre['profit_percentage'] = round(($stop - $close) / $close * 100, 2);
+
+                                $capital[] = $capital_pre;
+
+                                $profit = 0;
+
+                                $stop = 0;
+
+                                if ($capital_pre['profit'] <= 0) {
+                                    $i++;
+                                } else {
+                                    $conseq[] = $i;
+                                    $i = 0;
+                                }
+
+                            } elseif ($strategy['high'] >= $profit) {
+
+                                $capital_pre['profit'] = $profit - $close;
+
+                                $capital_pre['profit_percentage'] = round(($profit - $close) / $close * 100, 2);
+
                                 $capital[] = $capital_pre;
 
                                 $profit = 0;
@@ -139,12 +632,13 @@ class StrategyTest
 
                             }
 
-                        }
-                        /* else {
+                        } else {
 
                             if ($strategy['high'] >= $stop) {
 
                                 $capital_pre['profit'] = $close - $stop;
+
+                                $capital_pre['profit_percentage'] = round(($close - $stop) / $close * 100, 2);
 
                                 $capital[] = $capital_pre;
 
@@ -152,12 +646,12 @@ class StrategyTest
 
                                 $stop = 0;
 
-                                if ($capital_pre['profit'] <= 0) {
-                                    $i++;
-                                } else {
-                                    $conseq[] = $i;
-                                    $i = 0;
-                                }
+                                /*                                if ($capital_pre['profit'] <= 0) {
+                                                                    $i++;
+                                                                } else {
+                                                                    $conseq[] = $i;
+                                                                    $i = 0;
+                                                                }*/
 
                             }
 
@@ -165,22 +659,24 @@ class StrategyTest
 
                                 $capital_pre['profit'] = $close - $profit;
 
+                                $capital_pre['profit_percentage'] = round(($close - $profit) / $close * 100, 2);
+
                                 $capital[] = $capital_pre;
 
                                 $profit = 0;
 
                                 $stop = 0;
 
-                                if ($capital_pre['profit'] <= 0) {
-                                    $i++;
-                                } else {
-                                    $conseq[] = $i;
-                                    $i = 0;
-                                }
+                                /*                                if ($capital_pre['profit'] <= 0) {
+                                                                    $i++;
+                                                                } else {
+                                                                    $conseq[] = $i;
+                                                                    $i = 0;
+                                                                }*/
 
                             }
 
-                        }*/
+                        }
 
                     }
 
@@ -192,23 +688,48 @@ class StrategyTest
 
             $sum = 0;
 
-            foreach ($capital as $c) {
+            if (isset($capital)) {
 
-                $sum += $c['profit'];
+                foreach ($capital as $key => $c) {
+
+                    if ($c['position'] == 'short') {
+                        unset($capital[$key]);
+                    } else {
+
+                        $sum += $c['profit_percentage'];
+
+                        $profit_percentage[] = $capital[$key]['profit_percentage'];
+
+                    }
+
+                }
 
             }
 
-            $conseq = $conseq ? array_count_values($conseq) : [];
+            if (isset($conseq)) {
 
-            ksort($conseq);
+                $conseq =  array_count_values($conseq);
 
-            foreach ($conseq as $c) {
+                ksort($conseq);
 
-                $conseq_percentage[] = round($c / array_sum($conseq) * 100, 2);
+                foreach ($conseq as $c) {
+
+                    $conseq_percentage[] = round($c / array_sum($conseq) * 100, 2);
+
+                }
 
             }
+
+            $realTime = Carbon::now();
+
+            $first = array_shift($capital);
+
+            $diff = $realTime->diffInDays($first['time_start']);
+
+            array_unshift($capital, $first);
 
             debug($sum ?? []);
+            debug(round($sum / $diff * 365, 2));
             debug($conseq ?? []);
             debug($conseq_percentage ?? []);
             debug($capital ?? [], true);
