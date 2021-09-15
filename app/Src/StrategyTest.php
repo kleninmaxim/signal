@@ -23,144 +23,184 @@ class StrategyTest
     {
 
 
-
         $pairs = BinancePair::all()->toArray();
 
         $pairs = BinancePair::where('pair', 'BTC/USDT')->get()->toArray();
 
         foreach ($pairs as $pair) {
 
-            $candles = BinanceHourCandle::where('binance_pair_id', $pair['id'])
-                ->orderBy('time_start', 'desc')->skip(0)->take(50000)->get()->toArray();
+            $candles = BinanceThirtyMinuteCandle::where('binance_pair_id', $pair['id'])
+                ->orderBy('time_start', 'desc')->skip(0)->take(80000)->get()->toArray();
 
             $candles = array_reverse($candles);
 
-            $hist = Strategy::macd($candles, 100, 200, 9, true);
+            $dots = Strategy::parabolicSar($candles);
+            $ema = array_filter(Strategy::ema($candles, 200));
+            $hist = Strategy::macd($candles, 100, 200, 9);
 
-            $signals = $this->getSignalMacd($hist);
+            $min = min(count($dots), count($ema), count($hist), count($candles));
 
-            if (!empty($signals)) {
+            $dots = array_slice($dots, count($dots) - $min);
+            $ema = array_slice($ema, count($ema) - $min);
+            $hist = array_slice($hist, count($hist) - $min);
+            $candles = array_slice($candles, count($candles) - $min);
 
-                $i = 0;
+            $strategies = [];
 
-                $consequences = [];
+            foreach ($candles as $key => $candle) {
 
-                $sum = 0;
+                $strategy_pre['close'] = $candle['close'];
+                $strategy_pre['high'] = $candle['high'];
+                $strategy_pre['low'] = $candle['low'];
+                $strategy_pre['time_start'] = $candle['time_start'];
+                $strategy_pre['dots'] = $dots[$key];
+                $strategy_pre['ema'] = $ema[$key];
+                $strategy_pre['hist'] = $hist[$key];
 
-                $prev = [];
+                $strategies[] = $strategy_pre;
 
-                $capital = [];
+            }
 
-                $consequences_percentage = [];
+            $this->proccessMacdEmaParabolic($strategies);
 
-                foreach ($signals as $key => $signal) {
+            $i = 0;
 
-                    if (!empty($prev)) {
+            $position = [];
 
-                        if ($signal['signal'] == 'long') {
+            $percentage = 5;
 
-                            $profit = $prev[$key - 1]['close'] - $signal['close'];
+            $prev = [];
 
-                        } elseif ($signal['signal'] == 'short') {
+            $capital = [];
 
-                            $profit = $signal['close'] - $prev[$key - 1]['close'];
+            $consequences = [];
 
-                        } else throw new \Exception();
+            $consequences_percentage = [];
 
-                        $capital_pre['profit_percentage'] = round($profit / $prev[$key - 1]['close'] * 100, 2);
+            $sum = 0;
 
-                        $capital_pre['time_start'] = $prev[$key - 1]['time_start'];
+            foreach ($strategies as $strategy) {
 
-                        $capital_pre['time_end'] = $signal['time_start'];
+                if (!empty($prev)) {
 
-                        if ($signal['signal'] == 'short') {
+                    if ($prev['dots'] == 'short' && $strategy['dots'] == 'long') {
+
+                        if ($strategy['ema'] == 'long' && $strategy['hist'] == 'long') {
+
+                            if ((1 + $percentage / 100) * $strategy['close'] < $strategy['profit']) {
+                                $strategy['profit'] = (1 + $percentage / 100) * $strategy['close'];
+
+                                $strategy['stop'] = (1 - $percentage / 100) * $strategy['close'];
+                            }
+
+                            $position = $strategy;
+
+                        }
+
+                    }
+
+                    if (!empty($position)) {
+
+                        if ($strategy['low'] <= $position['stop']) {
+
+                            $capital_pre['profit'] = $position['stop'] - $position['close'];
+
+                            $capital_pre['profit_percentage'] = round($capital_pre['profit'] / $position['close'] * 100, 2);
+
+                            $capital_pre['time_start'] = $position['time_start'];
 
                             $capital[] = $capital_pre;
 
-                            if ($profit <= 0) {
+                            $i++;
 
-                                $i++;
+                            $position = [];
 
-                            } else {
+                        } elseif ($strategy['high'] >= $position['profit']) {
 
-                                $consequences[] = $i;
+                            $capital_pre['profit'] = $position['profit'] - $position['close'];
 
-                                $i = 0;
+                            $capital_pre['profit_percentage'] = round($capital_pre['profit'] / $position['close'] * 100, 2);
 
-                            }
-                        }
+                            $capital_pre['time_start'] = $position['time_start'];
 
-                    }
+                            $capital[] = $capital_pre;
 
-                    unset($prev);
+                            $consequences[] = $i;
 
-                    $prev[$key] = $signal;
+                            $i = 0;
 
-                }
-
-                if (!empty($capital)) {
-
-                    foreach ($capital as $c) {
-
-                        $sum += $c['profit_percentage'];
-
-                    }
-
-                    $realTime = Carbon::now();
-
-                    $first = array_shift($capital);
-
-                    $diff = $realTime->diffInDays($first['time_start']);
-
-                    array_unshift($capital, $first);
-
-                    debug($sum);
-                    debug(round($sum / $diff * 365, 2));
-//                    debug($capital);
-
-                }
-
-                if (!empty($consequences)) {
-
-                    $consequences = array_count_values($consequences);
-
-                    ksort($consequences);
-
-                    foreach ($consequences as $key => $consequence) {
-
-                        $consequences_percentage[$key] = round($consequence / array_sum($consequences) * 100, 2);
-
-                    }
-
-                    // debug($consequences);
-
-                    if (!empty($consequences_percentage)) {
-
-                        $consequence_percentage_sum = [];
-
-                        $consequence_percentage_sum_prev = 0;
-
-                        foreach ($consequences_percentage as $key => $consequence_percentage) {
-
-                            $consequence_percentage_sum_prev += $consequence_percentage;
-
-                            $consequence_percentage_sum[$key] = $consequence_percentage_sum_prev;
+                            $position = [];
 
                         }
 
-                        debug($consequences_percentage);
-
-                        debug($consequence_percentage_sum);
-
                     }
 
                 }
 
-            } else {
-
-                //debug($pair['pair'] . ' Not enough candles');
+                $prev = $strategy;
 
             }
+
+            if (!empty($capital)) {
+
+                foreach ($capital as $c) {
+
+                    $sum += $c['profit_percentage'];
+
+                    $profit_percentage[] = $c['profit_percentage'];
+
+                }
+
+                $realTime = Carbon::now();
+
+                $first = array_shift($capital);
+
+                $diff = $realTime->diffInDays($first['time_start']);
+
+                array_unshift($capital, $first);
+
+                debug($sum ?? []);
+                debug(round($sum / $diff * 365, 2));
+
+            }
+
+            if (!empty($consequences)) {
+
+                $consequences = array_count_values($consequences);
+
+                ksort($consequences);
+
+                foreach ($consequences as $key =>$consequence) {
+
+                    $consequences_percentage[$key] = round($consequence / array_sum($consequences) * 100, 2);
+
+                }
+
+                //debug($consequences);
+
+                if (!empty($consequences_percentage)) {
+
+                    $consequence_percentage_sum = [];
+
+                    $consequence_percentage_sum_prev = 0;
+
+                    foreach ($consequences_percentage as $key =>  $consequence_percentage) {
+
+                        $consequence_percentage_sum_prev += $consequence_percentage;
+
+                        $consequence_percentage_sum[$key] = $consequence_percentage_sum_prev;
+
+                    }
+
+                    debug($consequences_percentage);
+
+                    debug($consequence_percentage_sum);
+
+                }
+
+            }
+
+            debug($capital ?? [], true);
 
         }
 
