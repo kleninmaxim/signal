@@ -8,9 +8,15 @@ use App\Src\Telegram;
 use App\Src\StrategyTest;
 use Carbon\Carbon;
 use App\Models\BinancePair;
-use App\Models\BinanceFifteenMinuteCandle;
 use App\Models\BinanceFiveMinuteCandle;
+use App\Models\BinanceFifteenMinuteCandle;
 use App\Models\BinanceThirtyMinuteCandle;
+use App\Models\BinanceHourCandle;
+use App\Models\BinanceFourHourCandle;
+use App\Models\BinanceDayCandle;
+use App\Models\BinanceWeekCandle;
+use App\Models\BinanceMonthCandle;
+use Illuminate\Support\Facades\Http;
 
 class BinanceController extends Controller
 {
@@ -20,6 +26,13 @@ class BinanceController extends Controller
     public function __construct()
     {
         $this->binance = new Binance();
+    }
+
+    public function coraWave()
+    {
+
+        (new StrategyTest())->coraWave();
+
     }
 
     public function myStrategy()
@@ -60,11 +73,107 @@ class BinanceController extends Controller
 
             $pair->save();
 
-            $this->recordFiveMinuteCandles($pair, '5m');
-            $this->recordFifteenMinuteCandles($pair, '15m');
-            $this->recordThirtyMinuteCandles($pair, '30m');
+/*            $this->recordData($pair, '5m');
+            $this->recordData($pair, '15m');
+            $this->recordData($pair, '30m');*/
+/*            $this->recordData($pair, '1h');
+            $this->recordData($pair, '4h');
+            $this->recordData($pair, '1d');*/
+            $this->recordData($pair, '1w');
+            $this->recordData($pair, '1M');
 
         }
+
+        return true;
+
+    }
+
+    private function recordData($pair, $timeframe)
+    {
+        //$exchange = new \ccxt\binance();
+
+        //usleep((new \ccxt\binance())->rateLimit * 10);
+
+        $timae_start = 1503003600000;
+
+        do {
+
+            try {
+
+                //$api_candles = $exchange->fetch_ohlcv($pair->pair, $timeframe, $timae_start, 1000);
+
+                $pair_str = str_replace('/', '', $pair->pair);
+
+                $api_candles = Http::get('https://api.binance.com/api/v3/klines', [
+                    'symbol' => $pair_str,
+                    'interval' => $timeframe,
+                    'startTime' => $timae_start,
+                    'limit' => 1000,
+                ])->collect()->toArray();
+
+                $last = array_pop($api_candles);
+
+                $timae_start = $last[0];
+
+            } catch (TIException $e) {
+
+                debug('Can\'t get candles!!!');
+
+                if ($timeframe == '5m') BinanceFiveMinuteCandle::where('binance_pair_id',$pair->id)->delete();
+                elseif ($timeframe == '15m') BinanceFifteenMinuteCandle::where('binance_pair_id',$pair->id)->delete();
+                elseif ($timeframe == '30m') BinanceThirtyMinuteCandle::where('binance_pair_id',$pair->id)->delete();
+                elseif ($timeframe == '1h') BinanceHourCandle::where('binance_pair_id',$pair->id)->delete();
+                elseif ($timeframe == '4h') BinanceFourHourCandle::where('binance_pair_id',$pair->id)->delete();
+                elseif ($timeframe == '1d') BinanceDayCandle::where('binance_pair_id',$pair->id)->delete();
+                elseif ($timeframe == '1w') BinanceWeekCandle::where('binance_pair_id',$pair->id)->delete();
+                elseif ($timeframe == '1M') BinanceMonthCandle::where('binance_pair_id',$pair->id)->delete();
+
+                $pair->notify = false;
+
+                $pair->save();
+
+                die();
+
+            }
+
+            foreach ($api_candles as $candle) {
+
+                $candle['time_start'] = Carbon::createFromTimestamp($candle[0] / 1000)->toDateTimeString();
+                $candle['open'] = $candle[1];
+                $candle['high'] = $candle[2];
+                $candle['low'] = $candle[3];
+                $candle['close'] = $candle[4];
+                $candle['volume'] = $candle[5];
+
+                unset($candle[0]);
+                unset($candle[1]);
+                unset($candle[2]);
+                unset($candle[3]);
+                unset($candle[4]);
+                unset($candle[5]);
+
+                $array = [
+                    'binance_pair_id' => $pair->id,
+                    'open' => $candle['open'],
+                    'close' => $candle['close'],
+                    'high' => $candle['high'],
+                    'low' => $candle['low'],
+                    'volume' => $candle['volume'],
+                    'time_start' => $candle['time_start']
+                ];
+
+                if ($timeframe == '5m') BinanceFiveMinuteCandle::create($array);
+                elseif ($timeframe == '15m') BinanceFifteenMinuteCandle::create($array);
+                elseif ($timeframe == '30m') BinanceThirtyMinuteCandle::create($array);
+                elseif ($timeframe == '1h') BinanceHourCandle::create($array);
+                elseif ($timeframe == '4h') BinanceFourHourCandle::create($array);
+                elseif ($timeframe == '1d') BinanceDayCandle::create($array);
+                elseif ($timeframe == '1w') BinanceWeekCandle::create($array);
+                elseif ($timeframe == '1M') BinanceMonthCandle::create($array);
+
+            }
+
+        } while (!empty($api_candles));
 
         return true;
 

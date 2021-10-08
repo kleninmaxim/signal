@@ -25,6 +25,70 @@ class Strategy
 
     }
 
+    public static function coraWave($candles, $length, $r_multi = 2, $smooth = true, $man_smooth = 1)
+    {
+
+        $candles = array_reverse($candles);
+
+        foreach ($candles as $key => $candle) {
+            $candles[$key]['hlc3'] = ($candle['high'] + $candle['low'] + $candle['close']) / 3;
+        }
+
+        $s = $smooth ? max(round(sqrt($length)), 1) : $man_smooth;
+
+        $cora_raw = self::f_adj_crwma($candles ?? [], $length, 0.01, $r_multi);
+
+        $cora_raw = array_reverse($cora_raw);
+
+        return self::wma($cora_raw, $s);
+
+    }
+
+    private static function f_adj_crwma($sources, $length, $Start_Wt, $r_multi)
+    {
+
+        $sources = array_values($sources);
+
+        $all = count($sources);
+
+        foreach ($sources as $key => $source) {
+
+            if ($key + $length > $all) {
+                $signals[]['close'] = 0;
+                continue;
+            }
+
+            $numerator = 0;
+
+            $denom = 0;
+
+            $c_weight = 0;
+
+            $End_Wt = $length;
+
+            $r = pow(($End_Wt / $Start_Wt), (1 / ($length - 1))) - 1;
+
+            $base = 1 + $r * $r_multi;
+
+            for ($i = 0; $i < $length - 1; $i++) {
+
+                $c_weight = $Start_Wt * pow($base, ($length - $i));
+
+                $numerator += $sources[$key + $i]['hlc3'] * $c_weight;
+
+                $denom +=  $c_weight;
+
+            }
+
+            $signals[]['close'] = $numerator / $denom;
+
+        }
+
+
+        return $signals ?? [];
+
+    }
+
     public static function parabolicSar($candles, $start = 0.02, $inc = 0.02, $max = 0.2)
     {
 

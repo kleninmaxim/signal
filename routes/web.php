@@ -30,22 +30,6 @@ Route::get('/', function () {
 
     return view('welcome');
 
-    $client = new TIClient(config('api.tinkoff_token'), TISiteEnum::EXCHANGE);
-
-    $stockes = $client->getStocks(['V', 'LKOH']);
-
-    try {
-
-        $instr = $client->getInstrumentByTicker('TSLA');
-
-        debug($instr, true);
-
-    } catch (TIException $e) {
-
-        dump('there are no ticker');
-    };
-
-    return view('welcome');
 });
 
 Route::get('/telegram', [\App\Http\Controllers\TelegramBotController::class, 'telegram']);
@@ -66,6 +50,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/tinkoff/test', [\App\Http\Controllers\TinkoffController::class, 'test']);
 
     Route::get('/tinkoff/loadCandles', [\App\Http\Controllers\TinkoffController::class, 'loadCandles']);
+
+    Route::get('/tinkoff/loadDayWeekMonthCandles', [\App\Http\Controllers\TinkoffController::class, 'loadDayWeekMonthCandles']);
 
     Route::get('/binance/getCandles/{pair}/{timeframe}', [\App\Http\Controllers\BinanceController::class, 'getCandles']);
 

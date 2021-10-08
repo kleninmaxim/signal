@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateBinanceThirtyMinuteCandlesTable extends Migration
+class CreateBinanceMonthCandlesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateBinanceThirtyMinuteCandlesTable extends Migration
      */
     public function up()
     {
-        Schema::create('binance_thirty_minute_candles', function (Blueprint $table) {
+        Schema::create('binance_month_candles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('binance_pair_id');
             $table->float('open', 25, 8);
@@ -34,6 +34,6 @@ class CreateBinanceThirtyMinuteCandlesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('binance_thirty_minute_candles');
+        Schema::dropIfExists('binance_month_candles');
     }
 }

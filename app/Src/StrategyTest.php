@@ -19,9 +19,35 @@ use App\Models\TinkoffHourCandle;
 class StrategyTest
 {
 
-    public function testStrategyBinance()
+    public function coraWave()
     {
 
+        $pairs = BinancePair::all()->toArray();
+
+        foreach ($pairs as $pair) {
+
+            $candles = (new Binance())->getCandles('BTC/USDT', '1M');
+
+            $signals = Strategy::coraWaveModern($candles, 12);
+
+            foreach ($signals as $key => $signal) {
+                $last_pre['date'] = Carbon::createFromTimestamp($candles[$key]['time_start'])->toDateTimeString();
+                $last_pre['signal'] = $signal;
+                $last_pre['close'] = $candles[$key]['close'];
+
+                $last[] = $last_pre;
+            }
+
+            debug($last ?? [], true);
+
+        }
+
+        return true;
+
+    }
+
+    public function testStrategyBinance()
+    {
 
         $pairs = BinancePair::all()->toArray();
 

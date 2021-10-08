@@ -3,6 +3,8 @@
 namespace App\Src;
 
 use App\Models\TinkoffDayCandle;
+use App\Models\TinkoffWeekCandle;
+use App\Models\TinkoffMonthCandle;
 use App\Models\TinkoffFourHourCandle;
 use App\Models\TinkoffHourCandle;
 use App\Models\TinkoffTicker;
@@ -37,6 +39,10 @@ class Tinkoff
     public function test()
     {
 
+/*        $ticker_data = $this->client->getCurrencies();
+
+        debug($ticker_data, true);*/
+
         $stategy_test = new StrategyTest();
 
         $stategy_test->testTinkoff();
@@ -56,6 +62,60 @@ class Tinkoff
         }
 
         return $ticker;
+    }
+
+    public function loadDayWeekMonthCandles()
+    {
+
+        $ticker = DB::table('tinkoff_tikers_queue')->select('ticker')->first();
+
+        if (!empty($ticker)) {
+
+            $this->deleteTickerQueue($ticker->ticker);
+
+            try {
+
+                $ticker_data = $this->client->getInstrumentByTicker($ticker->ticker);
+
+            } catch (TIException $e) {
+
+                $this->deleteTickerQueue($ticker->ticker);
+
+                $telegram = new Telegram(
+                    $this->tinkoff_telegram_token,
+                    $this->tinkoff_chat_id
+                );
+
+                $telegram->send('No such ticker: ' . $ticker->ticker);
+
+                die();
+
+            }
+
+
+            try {
+
+                $day_candles = $this->getCandlesAPI($ticker_data->getFigi(), TIIntervalEnum::DAY, 100);
+                $week_candles = $this->getCandlesAPI($ticker_data->getFigi(), TIIntervalEnum::WEEK, 100);
+                $month_candles = $this->getCandlesAPI($ticker_data->getFigi(), TIIntervalEnum::MONTH, 100);
+
+            } catch (TIException $e) {
+
+                die();
+
+            }
+
+            $id = $this->insertTicker($ticker_data);
+            $this->insertDayCandle($day_candles, $id);
+            $this->insertWeekCandle($week_candles, $id);
+            $this->insertMonthCandle($month_candles, $id);
+
+            return true;
+
+        }
+
+        return false;
+
     }
 
     public function loadCandles()
@@ -87,7 +147,7 @@ class Tinkoff
 
             $four_hour_candles = $this->getFourHoursCandles($hour_candles, $hours);
 
-            $day_candles = $this->getDayCandlesAPI($ticker_data->getFigi());
+            $day_candles = $this->getCandlesAPI($ticker_data->getFigi());
 
             if ($this->checkCurrentTimeWithCandle($hour_candles)) array_pop($hour_candles);
 
@@ -126,7 +186,7 @@ class Tinkoff
 
             }
 
-            $day_candles = $this->getDayCandlesAPI($ticker_data->getFigi());
+            $day_candles = $this->getCandlesAPI($ticker_data->getFigi());
 
             if ($this->checkCurrentTimeWithCandle($day_candles)) array_pop($day_candles);
 
@@ -346,7 +406,7 @@ class Tinkoff
                     $this->tinkoff_chat_id
                 );
 
-                $telegram->send('Can\'t get candles!!!');
+                $telegram->send('Can\'t get candles!!! FIGI is: ' . $figi);
 
                 die();
 
@@ -373,7 +433,7 @@ class Tinkoff
 
     }
 
-    private function getDayCandlesAPI($figi, $interval = null)
+    private function getCandlesAPI($figi, $day = TIIntervalEnum::DAY, $interval = null)
     {
 
         $interval = $interval ?? $this->interval;
@@ -388,18 +448,16 @@ class Tinkoff
 
             try {
 
-                $candles = array_reverse($this->client->getHistoryCandles($figi, $from, $to, TIIntervalEnum::DAY));
+                $candles = array_reverse($this->client->getHistoryCandles($figi, $from, $to, $day));
 
             } catch (TIException $e) {
-
-                debug('Can\'t get candles!!!');
 
                 $telegram = new Telegram(
                     $this->tinkoff_telegram_token,
                     $this->tinkoff_chat_id
                 );
 
-                $telegram->send('Can\'t get candles!!!');
+                $telegram->send('Can\'t get candles!!! FIGI is: ' . $figi);
 
                 die();
 
@@ -479,6 +537,36 @@ class Tinkoff
                 'low' => $day_candle['low'],
                 'volume' => $day_candle['volume'],
                 'time_start' => $day_candle['time_start']
+            ]);
+        }
+    }
+
+    private function insertWeekCandle($week_candles, $id)
+    {
+        foreach ($week_candles as $week_candle) {
+            TinkoffWeekCandle::create([
+                'tinkoff_ticker_id' => $id,
+                'open' => $week_candle['open'],
+                'close' => $week_candle['close'],
+                'high' => $week_candle['high'],
+                'low' => $week_candle['low'],
+                'volume' => $week_candle['volume'],
+                'time_start' => $week_candle['time_start']
+            ]);
+        }
+    }
+
+    private function insertMonthCandle($month_candles, $id)
+    {
+        foreach ($month_candles as $month_candle) {
+            TinkoffMonthCandle::create([
+                'tinkoff_ticker_id' => $id,
+                'open' => $month_candle['open'],
+                'close' => $month_candle['close'],
+                'high' => $month_candle['high'],
+                'low' => $month_candle['low'],
+                'volume' => $month_candle['volume'],
+                'time_start' => $month_candle['time_start']
             ]);
         }
     }

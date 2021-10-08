@@ -41,6 +41,11 @@ class TinkoffController extends Controller
         return $this->tinkoff->loadCandles();
     }
 
+    public function loadDayWeekMonthCandles()
+    {
+        return $this->tinkoff->loadDayWeekMonthCandles();
+    }
+
     public function updateAllCandles()
     {
         $tickers = $this->tinkoff->getAllTickers();
