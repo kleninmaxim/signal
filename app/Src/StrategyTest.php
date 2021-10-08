@@ -26,16 +26,18 @@ class StrategyTest
 
         foreach ($pairs as $pair) {
 
-            $candles = (new Binance())->getCandles('BTC/USDT', '1M');
+            $candles = (new Binance())->getCandles('BTC/USDT', '1w');
 
             $signals = Strategy::coraWave($candles, 12);
 
             foreach ($signals as $key => $signal) {
-                $last_pre['date'] = Carbon::createFromTimestamp($candles[$key]['time_start'])->toDateTimeString();
-                $last_pre['signal'] = $signal;
-                //$last_pre['close'] = $candles[$key]['close'];
+                if ($signal != 0) {
+                    $last_pre['date'] = $candles[$key]['time_start'];
+                    $last_pre['signal'] = $signal;
+                    $last_pre['close'] = $candles[$key]['close'];
 
-                $last[] = $last_pre;
+                    $last[] = $last_pre;
+                }
             }
 
             debug($last ?? [], true);
