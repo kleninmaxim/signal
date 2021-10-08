@@ -147,7 +147,7 @@ class StrategyTest
 
             $profit_percentage = $profit / $first['action'] * (-100);
 
-            $profit_percentage_apy = $profit_percentage * 365 / $days;
+            $profit_percentage_apy = $days != 0 ? $profit_percentage * 365 / $days : 0;
 
             $profit_percentage_sum += $profit_percentage;
 
@@ -162,7 +162,7 @@ class StrategyTest
 
         }
 
-        $profit_percentage_apy_sum = $profit_percentage_sum * 365 / $day_sum;
+        $profit_percentage_apy_sum = $day_sum != 0 ? $profit_percentage_sum * 365 / $day_sum : 0;
 
         return [
             'profit_percentage_sum' => $profit_percentage_sum,

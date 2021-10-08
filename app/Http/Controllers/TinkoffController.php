@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TinkoffTicker;
 use App\Src\StrategyTest;
 use App\Src\Tinkoff;
 use Illuminate\Http\Request;
@@ -17,17 +18,22 @@ class TinkoffController extends Controller
 
     public function coraWave()
     {
+        $tickers = TinkoffTicker::all();
 
-        $result = StrategyTest::capitalJustAction(
-            StrategyTest::proccessCoraWaveSimple(
-                (new Tinkoff())->getCandles('TSLA', '1d'),
-                12
-            )
-        );
+        foreach ($tickers as $ticker) {
 
-        debug($result, true);
+            $result = StrategyTest::capitalJustAction(
+                StrategyTest::proccessCoraWaveSimple(
+                    (new Tinkoff())->getCandles($ticker->ticker, '1M'),
+                    12
+                )
+            );
 
-        return $result;
+            debug($ticker->ticker);
+            debug($result);
+        }
+
+        //return $result;
 
     }
 
