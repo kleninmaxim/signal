@@ -2,15 +2,16 @@
 
 namespace App\Src;
 
+use Carbon\Carbon;
+
+use App\Src\Strategy;
+
 use App\Models\BinancePair;
 use App\Models\BinanceFiveMinuteCandle;
 use App\Models\BinanceFifteenMinuteCandle;
 use App\Models\BinanceThirtyMinuteCandle;
 use App\Models\BinanceHourCandle;
-use App\Models\BinanceFourHourCandle;
 use App\Models\BinanceDayCandle;
-use App\Src\Strategy;
-use Carbon\Carbon;
 use App\Models\TinkoffDayCandle;
 use App\Models\TinkoffTicker;
 use App\Models\TinkoffFourHourCandle;
@@ -19,32 +20,155 @@ use App\Models\TinkoffHourCandle;
 class StrategyTest
 {
 
-    public function coraWave()
+    public static function coraWave($candles, $length)
     {
 
-        $pairs = BinancePair::all()->toArray();
+        $signals = Strategy::coraWave($candles, $length);
 
-        foreach ($pairs as $pair) {
+        foreach ($signals as $key => $signal) {
+            if ($signal != 0) {
+                $pre['date'] = $candles[$key]['time_start'];
+                $pre['signal'] = $signal;
+                $pre['close'] = $candles[$key]['close'];
 
-            $candles = (new Binance())->getCandles('BTC/USDT', '1w');
+                $cora_waves[] = $pre;
+            }
+        }
 
-            $signals = Strategy::coraWave($candles, 12);
+        return $cora_waves ?? [];
 
-            foreach ($signals as $key => $signal) {
-                if ($signal != 0) {
-                    $last_pre['date'] = $candles[$key]['time_start'];
-                    $last_pre['signal'] = $signal;
-                    $last_pre['close'] = $candles[$key]['close'];
+    }
 
-                    $last[] = $last_pre;
+    /*
+        Array (
+            [0] => Array
+                (
+                    [date] => 2018-04-01 03:00:00
+                    [action] => -5320.81
+                )
+
+            [1] => Array
+                (
+                    [date] => 2018-09-01 03:00:00
+                    [action] => 8289.34
+                )
+        )
+    */
+    public static function proccessCoraWaveSimple($candles, $length)
+    {
+
+        $cora_waves = self::coraWave($candles, $length);
+
+        $first = array_shift($cora_waves);
+
+        $actions = [];
+
+        foreach ($cora_waves as $key => $cora_wave) {
+
+            if ($first['signal'] <= $cora_wave['signal']) $signal = 'long';
+            else $signal = 'short';
+
+            if (isset($prev)) {
+
+                if ($prev == 'long' && $prev != $signal) {
+                    $pre['date'] = $candles[$key]['time_start'];
+                    $pre['action'] = $cora_wave['close'];
+
+                    $actions[] = $pre;
+                } elseif ($prev == 'short' && $prev != $signal) {
+                    $pre['date'] = $candles[$key]['time_start'];
+                    $pre['action'] = -$cora_wave['close'];
+
+                    $actions[] = $pre;
                 }
+
             }
 
-            debug($last ?? [], true);
+            $prev = $signal;
+            $first = $cora_wave;
 
         }
 
-        return true;
+        if (count($actions) >= 5) {
+
+            $first = array_shift($actions);
+
+            if ($first['action'] <= 0) array_shift($actions);
+
+            $last = array_pop($actions);
+
+            if ($last['action'] >= 0) $actions[] = $last;
+
+            return $actions;
+
+        }
+
+        return [];
+
+    }
+
+    /*
+        Array (
+            [0] => Array
+                (
+                    [date] => 2018-04-01 03:00:00
+                    [action] => -5320.81
+                )
+
+            [1] => Array
+                (
+                    [date] => 2018-09-01 03:00:00
+                    [action] => 8289.34
+                )
+        )
+    */
+    public static function capitalJustAction($datas)
+    {
+
+        $first = array_shift($datas);
+
+        $profit_percentage_sum = 0;
+
+        $day_sum = 0;
+
+        foreach ($datas as $key => $data) {
+
+            if ($data['action'] < 0) {
+
+                $first = $data;
+
+                continue;
+
+            }
+
+            $days = Carbon::parse($data['date'])->diffInDays(Carbon::parse($first['date']));
+
+            $profit = $data['action'] + $first['action'];
+
+            $profit_percentage = $profit / $first['action'] * (-100);
+
+            $profit_percentage_apy = $profit_percentage * $days / 365;
+
+            $profit_percentage_sum += $profit_percentage;
+
+            $day_sum += $days;
+
+            $result[$key]['buy'] = $first['action'] * -1;
+            $result[$key]['sell'] = $data['action'];
+            $result[$key]['profit'] = $profit;
+            $result[$key]['days'] = $days;
+            $result[$key]['profit_percentage'] = $profit_percentage;
+            $result[$key]['profit_percentage_apy'] = $profit_percentage_apy;
+
+        }
+
+        $profit_percentage_apy_sum = $profit_percentage_sum * $day_sum / 365;
+
+        return [
+            'profit_percentage_sum' => $profit_percentage_sum,
+            'day_sum' => $day_sum,
+            'profit_percentage_apy_sum' => $profit_percentage_apy_sum,
+        ];
 
     }
 
@@ -198,7 +322,7 @@ class StrategyTest
 
                 ksort($consequences);
 
-                foreach ($consequences as $key =>$consequence) {
+                foreach ($consequences as $key => $consequence) {
 
                     $consequences_percentage[$key] = round($consequence / array_sum($consequences) * 100, 2);
 
@@ -212,7 +336,7 @@ class StrategyTest
 
                     $consequence_percentage_sum_prev = 0;
 
-                    foreach ($consequences_percentage as $key =>  $consequence_percentage) {
+                    foreach ($consequences_percentage as $key => $consequence_percentage) {
 
                         $consequence_percentage_sum_prev += $consequence_percentage;
 
@@ -370,10 +494,6 @@ class StrategyTest
 
                 }
 
-            } else {
-
-                //debug($pair['pair'] . ' Not enough candles');
-
             }
 
         }
@@ -519,8 +639,8 @@ class StrategyTest
 
                 array_unshift($capital, $first);
 
-/*                debug($sum ?? []);
-                debug(round($sum / $diff * 365, 2));*/
+                /*                debug($sum ?? []);
+                                debug(round($sum / $diff * 365, 2));*/
 
             }
 
@@ -530,7 +650,7 @@ class StrategyTest
 
                 ksort($consequences);
 
-                foreach ($consequences as $key =>$consequence) {
+                foreach ($consequences as $key => $consequence) {
 
                     $consequences_percentage[$key] = round($consequence / array_sum($consequences) * 100, 2);
 
@@ -544,7 +664,7 @@ class StrategyTest
 
                     $consequence_percentage_sum_prev = 0;
 
-                    foreach ($consequences_percentage as $key =>  $consequence_percentage) {
+                    foreach ($consequences_percentage as $key => $consequence_percentage) {
 
                         $consequence_percentage_sum_prev += $consequence_percentage;
 
@@ -776,7 +896,7 @@ class StrategyTest
 
             if (isset($conseq)) {
 
-                $conseq =  array_count_values($conseq);
+                $conseq = array_count_values($conseq);
 
                 ksort($conseq);
 
@@ -917,17 +1037,17 @@ class StrategyTest
 
                     if ($arr > 0) {
                         $plus += $arr;
-                        $p_c ++;
+                        $p_c++;
                     } else {
                         $minus += $arr;
-                        $m_c ++;
+                        $m_c++;
                     }
 
                 }
 
                 debug($pair['pair'] . ' | ' . $plus / $p_c * 100 . ' | ' . $minus / $m_c * 100);
 
-                $output = array_slice(array_reverse($array), 0,round(count($array) * 0.1618034));
+                $output = array_slice(array_reverse($array), 0, round(count($array) * 0.1618034));
 
                 $plus = 0;
                 $minus = 0;
@@ -939,10 +1059,10 @@ class StrategyTest
 
                     if ($arr > 0) {
                         $plus += $arr;
-                        $p_c ++;
+                        $p_c++;
                     } else {
                         $minus += $arr;
-                        $m_c ++;
+                        $m_c++;
                     }
 
                 }
@@ -954,14 +1074,13 @@ class StrategyTest
 
 //            debug($all);
 
-        } else {
+            } else {
 
                 debug('array empty');
 
             }
 
         }
-
 
 
     }
@@ -996,11 +1115,11 @@ class StrategyTest
 
                 debug($pair['pair'] . ' | ' .
                     $capital / $first_price . ' | ' .
-                    ( ($capital - $first_price) * 365) / ($first_price * $diff) * 100 . ' | '  .
-                    $last['time_start'] . ' | '  .
-                    $diff . ' | '  .
-                    $first_price . ' | '  .
-                    $last['close'] . ' | '  .
+                    (($capital - $first_price) * 365) / ($first_price * $diff) * 100 . ' | ' .
+                    $last['time_start'] . ' | ' .
+                    $diff . ' | ' .
+                    $first_price . ' | ' .
+                    $last['close'] . ' | ' .
                     $last['close'] / $first_price
                 );
 
@@ -1046,11 +1165,11 @@ class StrategyTest
 
                 debug($ticker['ticker'] . ' | ' .
                     $capital / $first_price . ' | ' .
-                    ( ($capital - $first_price) * 365) / ($first_price * $diff) * 100 . ' | '  .
-                    $last['time_start'] . ' | '  .
-                    $diff . ' | '  .
-                    $first_price . ' | '  .
-                    $last['close'] . ' | '  .
+                    (($capital - $first_price) * 365) / ($first_price * $diff) * 100 . ' | ' .
+                    $last['time_start'] . ' | ' .
+                    $diff . ' | ' .
+                    $first_price . ' | ' .
+                    $last['close'] . ' | ' .
                     $last['close'] / $first_price
                 );
 
@@ -1098,11 +1217,11 @@ class StrategyTest
 
                 debug($pair['pair'] . ' | ' .
                     $capital / $first_price . ' | ' .
-                    ( ($capital - $first_price) * 365) / ($first_price * $diff) * 100 . ' | '  .
-                    $last['time_start'] . ' | '  .
-                    $diff . ' | '  .
-                    $first_price . ' | '  .
-                    $last['close'] . ' | '  .
+                    (($capital - $first_price) * 365) / ($first_price * $diff) * 100 . ' | ' .
+                    $last['time_start'] . ' | ' .
+                    $diff . ' | ' .
+                    $first_price . ' | ' .
+                    $last['close'] . ' | ' .
                     $last['close'] / $first_price
                 );
 
@@ -1221,13 +1340,13 @@ class StrategyTest
             if (isset($capital)) {
 
                 if ($signal['signal'] == 'long') $capital -= 2 * $signal['close'];
-                elseif($signal['signal'] == 'short') $capital += 2 * $signal['close'];
+                elseif ($signal['signal'] == 'short') $capital += 2 * $signal['close'];
                 else throw new \Exception();
 
             } else {
 
                 if ($signal['signal'] == 'long') $capital = -$signal['close'];
-                elseif($signal['signal'] == 'short') $capital = $signal['close'];
+                elseif ($signal['signal'] == 'short') $capital = $signal['close'];
                 else throw new \Exception();
 
                 $first_price = $capital;
@@ -1239,7 +1358,7 @@ class StrategyTest
         if (isset($capital) && isset($signal)) {
 
             if ($signal['signal'] == 'long') $capital += $signal['close'];
-            elseif($signal['signal'] == 'short') $capital -= $signal['close'];
+            elseif ($signal['signal'] == 'short') $capital -= $signal['close'];
             else throw new \Exception();
 
         }
@@ -1256,7 +1375,7 @@ class StrategyTest
             if (isset($capital)) {
 
                 if ($signal['signal'] == 'long') $capital -= $signal['close'];
-                elseif($signal['signal'] == 'short') $capital += $signal['close'];
+                elseif ($signal['signal'] == 'short') $capital += $signal['close'];
                 else throw new \Exception();
 
             } else {
@@ -1285,7 +1404,7 @@ class StrategyTest
                 if (isset($capital)) {
 
                     if ($signal['signal'] == 'long') $prev = $signal['close'];
-                    elseif($signal['signal'] == 'short') $capital = $capital / $prev * $signal['close'];
+                    elseif ($signal['signal'] == 'short') $capital = $capital / $prev * $signal['close'];
                     else throw new \Exception();
 
                 } else {

@@ -94,7 +94,7 @@ class Binance
 
                 $timae_start = $last[0];
 
-            } catch (TIException $e) {
+            } catch (\Exception $e) {
 
                 $this->sendTelegramMessage('Can\'t get candles!!! With symbol: ' . $pair);
 

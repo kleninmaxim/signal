@@ -18,6 +18,8 @@ class BinancePair extends Model
         if ($timeframe == '1d') return $this->binanceDayCandles();
         elseif ($timeframe == '1w') return $this->binanceWeekCandles();
         elseif ($timeframe == '1M') return $this->binanceMonthCandles();
+
+        return null;
     }
 
     public function binanceDayCandles()

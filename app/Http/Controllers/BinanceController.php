@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Src\Binance;
-use App\Src\Strategy;
 use App\Src\StrategyTest;
 
 class BinanceController extends Controller
@@ -18,29 +17,37 @@ class BinanceController extends Controller
 
     public function coraWave()
     {
+        $result = StrategyTest::capitalJustAction(
+            StrategyTest::proccessCoraWaveSimple(
+                (new Binance())->getCandles('BTC/USDT', '1w'),
+                12
+            )
+        );
 
-        return (new StrategyTest())->coraWave();
+        debug($result, true);
+
+        return $result;
 
     }
 
     public function myStrategy()
     {
 
-        return (new StrategyTest())->testStrategyBinance();
+        (new StrategyTest())->testStrategyBinance();
 
     }
 
     public function test()
     {
 
-        return (new StrategyTest())->test();
+        (new StrategyTest())->test();
 
     }
 
     public function testEmaBinance()
     {
 
-        return (new StrategyTest())->testEmaBinance();
+        (new StrategyTest())->testEmaBinance();
 
     }
 
