@@ -33,7 +33,7 @@ class StrategyTest
             foreach ($signals as $key => $signal) {
                 $last_pre['date'] = Carbon::createFromTimestamp($candles[$key]['time_start'])->toDateTimeString();
                 $last_pre['signal'] = $signal;
-                $last_pre['close'] = $candles[$key]['close'];
+                //$last_pre['close'] = $candles[$key]['close'];
 
                 $last[] = $last_pre;
             }

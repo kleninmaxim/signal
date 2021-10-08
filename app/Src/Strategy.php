@@ -271,6 +271,41 @@ class Strategy
 
     }
 
+    public static function wma($candles, $length)
+    {
+        $candles = array_reverse($candles);
+
+        $all = count($candles);
+
+        foreach ($candles as $key => $candle) {
+
+            if ($key + $length > $all) {
+                $signals[] = 0;
+                continue;
+            }
+
+            $norm = 0;
+
+            $sum = 0;
+
+            for ($i = 0; $i <= $length - 1; $i++) {
+
+                $weight = ($length - $i) * $length;
+
+                $norm += $weight;
+
+                $sum += $candles[$key + $i]['close'] * $weight;
+
+            }
+
+            $signals[] = $sum / $norm;
+
+        }
+
+        return array_reverse($signals ?? []);
+
+    }
+
     private static function f_adj_crwma($sources, $length, $Start_Wt, $r_multi)
     {
 

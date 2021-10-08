@@ -41,6 +41,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/binance/test', [\App\Http\Controllers\BinanceController::class, 'test']);
 
+    Route::get('/binance/coraWave', [\App\Http\Controllers\BinanceController::class, 'coraWave']);
+
     Route::get('/binance/myStrategy', [\App\Http\Controllers\BinanceController::class, 'myStrategy']);
 
     Route::get('/binance/testEmaBinance', [\App\Http\Controllers\BinanceController::class, 'testEmaBinance']);
@@ -72,7 +74,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
-    
+
 
 });
 
