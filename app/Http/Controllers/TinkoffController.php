@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Src\StrategyTest;
 use App\Src\Tinkoff;
 use Illuminate\Http\Request;
 
@@ -12,6 +13,22 @@ class TinkoffController extends Controller
     public function __construct()
     {
         $this->tinkoff = new Tinkoff();
+    }
+
+    public function coraWave()
+    {
+
+        $result = StrategyTest::capitalJustAction(
+            StrategyTest::proccessCoraWaveSimple(
+                (new Tinkoff())->getCandles('TSLA', '1d'),
+                12
+            )
+        );
+
+        debug($result, true);
+
+        return $result;
+
     }
 
     public function test()

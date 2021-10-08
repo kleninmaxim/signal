@@ -13,18 +13,27 @@ class TinkoffTicker extends Model
 
     public $timestamps = false;
 
-    public function tinkoff_day_candles()
+    public function getCandles($timeframe)
+    {
+        if ($timeframe == '1d') return $this->tinkoffDayCandles();
+        elseif ($timeframe == '1w') return $this->tinkoffWeekCandles();
+        elseif ($timeframe == '1M') return $this->tinkoffMonthCandles();
+
+        return null;
+    }
+
+    public function tinkoffDayCandles()
     {
         return $this->hasMany(TinkoffDayCandle::class);
     }
 
-    public function tinkoff_four_hour_candles()
+    public function tinkoffWeekCandles()
     {
-        return $this->hasMany(TinkoffFourHourCandle::class);
+        return $this->hasMany(TinkoffWeekCandle::class);
     }
 
-    public function tinkoff_hour_candles()
+    public function tinkoffMonthCandles()
     {
-        return $this->hasMany(TinkoffHourCandle::class);
+        return $this->hasMany(TinkoffMonthCandle::class);
     }
 }

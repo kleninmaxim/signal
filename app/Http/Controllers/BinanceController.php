@@ -19,7 +19,7 @@ class BinanceController extends Controller
     {
         $result = StrategyTest::capitalJustAction(
             StrategyTest::proccessCoraWaveSimple(
-                (new Binance())->getCandles('BTC/USDT', '1w'),
+                (new Binance())->getCandles('BTC/USDT', '1M'),
                 12
             )
         );
@@ -27,7 +27,6 @@ class BinanceController extends Controller
         debug($result, true);
 
         return $result;
-
     }
 
     public function myStrategy()

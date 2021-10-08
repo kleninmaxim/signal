@@ -32,8 +32,6 @@ Route::get('/', function () {
 
 });
 
-Route::get('/telegram', [\App\Http\Controllers\TelegramBotController::class, 'telegram']);
-
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 
@@ -52,6 +50,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 
     Route::get('/tinkoff/test', [\App\Http\Controllers\TinkoffController::class, 'test']);
+
+    Route::get('/tinkoff/coraWave', [\App\Http\Controllers\TinkoffController::class, 'coraWave']);
 
     Route::get('/tinkoff/loadCandles', [\App\Http\Controllers\TinkoffController::class, 'loadHourCandles']);
 

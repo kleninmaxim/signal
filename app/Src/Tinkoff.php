@@ -51,6 +51,16 @@ class Tinkoff
 
         $stategy_test->testTinkoff();
 
+        return true;
+
+    }
+
+    public function getCandles($ticker, $timeframe)
+    {
+        return TinkoffTicker::where('ticker', $ticker)->first()
+            ->getCandles($timeframe)
+            ->select('open', 'close', 'high', 'low', 'volume', 'time_start')
+            ->get()->toArray();
     }
 
     public function addNewTicker($ticker)
