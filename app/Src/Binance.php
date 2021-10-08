@@ -2,88 +2,146 @@
 
 namespace App\Src;
 
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
+
+use App\Traits\TelegramSend;
+
 use App\Models\BinancePair;
-use App\Src\Telegram;
+use App\Models\BinanceFiveMinuteCandle;
+use App\Models\BinanceFifteenMinuteCandle;
+use App\Models\BinanceThirtyMinuteCandle;
+use App\Models\BinanceHourCandle;
+use App\Models\BinanceFourHourCandle;
+use App\Models\BinanceDayCandle;
+use App\Models\BinanceWeekCandle;
+use App\Models\BinanceMonthCandle;
 
 class Binance
 {
-    private $exchange;
-    private $limit = 800;
+    use TelegramSend;
 
-    public $binance_telegram_token;
-    public $binance_chat_id;
+    private $limit = 1000;
+
+    public $telegram_token;
+    public $chat_id;
 
     public function __construct()
     {
-        $this->exchange = new \ccxt\binance();
-
-        $this->binance_telegram_token = config('api.telegram_token_2');
-        $this->binance_chat_id = config('api.chat_id_2');
+        $this->telegram_token = config('api.telegram_token_2');
+        $this->chat_id = config('api.chat_id_2');
     }
 
-    public function getCandles($symbol, $timeframe)
+    public function loadCandles()
+    {
+        $notify = false;
+
+        $pair = BinancePair::where('notify', $notify)->first();
+
+        if (!empty($pair)) {
+
+            $pair->notify = !$notify;
+
+            $pair->save();
+
+/*            $this->recordData($pair, '5m', $notify);
+            $this->recordData($pair, '15m', $notify);
+            $this->recordData($pair, '30m', $notify);*/
+/*            $this->recordData($pair, '1h', $notify);
+            $this->recordData($pair, '4h', $notify);
+            $this->recordData($pair, '1d', $notify);*/
+/*            $this->recordData($pair, '1w', $notify);
+            $this->recordData($pair, '1M', $notify);*/
+
+        }
+
+        return true;
+
+    }
+
+    private function recordData($pair, $timeframe, $notify)
     {
 
-        if ($this->exchange->has['fetchOHLCV']) {
+        $timae_start = 1503003600000;
 
-            usleep ($this->exchange->rateLimit * 10);
+        do {
 
             try {
 
-                $candles = $this->exchange->fetch_ohlcv($symbol, $timeframe, null, $this->limit);
+                $pair_str = str_replace('/', '', $pair->pair);
+
+                $api_candles = Http::get('https://api.binance.com/api/v3/klines', [
+                    'symbol' => $pair_str,
+                    'interval' => $timeframe,
+                    'startTime' => $timae_start,
+                    'limit' => $this->limit,
+                ])->collect()->toArray();
+
+                $last = array_pop($api_candles);
+
+                $timae_start = $last[0];
 
             } catch (TIException $e) {
 
-                debug('Can\'t get candles!!!');
+                $this->sendTelegramMessage('Can\'t get candles!!! With symbol: ' . $pair);
 
-                $telegram = new Telegram(
-                    $this->binance_telegram_token,
-                    $this->binance_chat_id
-                );
+                $this->deleteCandles($pair->id, $timeframe);
 
-                $telegram->send('Can\'t get candles!!!');
+                $pair->notify = $notify;
 
-                die();
+                $pair->save();
+
+                return false;
 
             }
 
-            $this->proccessCandles($candles);
+            $this->recordCandles($pair->id, $timeframe, $api_candles);
 
-            return $candles;
+        } while (!empty($api_candles));
 
-        }
-
-        return null;
+        return true;
 
     }
 
-    public function getAllPairs()
-    {
-        return BinancePair::where('notify', true)->get();
-    }
-
-    private function proccessCandles(&$candles)
+    private function recordCandles($id, $timeframe, $api_candles)
     {
 
-        foreach ($candles as $key => $candle) {
+        foreach ($api_candles as $candle) {
 
-            $candle['time_start'] = $candle[0] / 1000;
-            $candle['open'] = $candle[1];
-            $candle['high'] = $candle[2];
-            $candle['low'] = $candle[3];
-            $candle['close'] = $candle[4];
-            $candle['volume'] = $candle[5];
+            $array = [
+                'binance_pair_id' => $id,
+                'open' => $candle[1],
+                'high' => $candle[2],
+                'low' => $candle[3],
+                'close' => $candle[4],
+                'volume' => $candle[5],
+                'time_start' => Carbon::createFromTimestamp($candle[0] / 1000)->toDateTimeString()
+            ];
 
-            unset($candle[0]);
-            unset($candle[1]);
-            unset($candle[2]);
-            unset($candle[3]);
-            unset($candle[4]);
-            unset($candle[5]);
-
-            $candles[$key] = $candle;
+            if ($timeframe == '5m') BinanceFiveMinuteCandle::create($array);
+            elseif ($timeframe == '15m') BinanceFifteenMinuteCandle::create($array);
+            elseif ($timeframe == '30m') BinanceThirtyMinuteCandle::create($array);
+            elseif ($timeframe == '1h') BinanceHourCandle::create($array);
+            elseif ($timeframe == '4h') BinanceFourHourCandle::create($array);
+            elseif ($timeframe == '1d') BinanceDayCandle::create($array);
+            elseif ($timeframe == '1w') BinanceWeekCandle::create($array);
+            elseif ($timeframe == '1M') BinanceMonthCandle::create($array);
 
         }
+
+    }
+
+    private function deleteCandles($id, $timeframe)
+    {
+
+        if ($timeframe == '5m') BinanceFiveMinuteCandle::where('binance_pair_id', $id)->delete();
+        elseif ($timeframe == '15m') BinanceFifteenMinuteCandle::where('binance_pair_id', $id)->delete();
+        elseif ($timeframe == '30m') BinanceThirtyMinuteCandle::where('binance_pair_id', $id)->delete();
+        elseif ($timeframe == '1h') BinanceHourCandle::where('binance_pair_id', $id)->delete();
+        elseif ($timeframe == '4h') BinanceFourHourCandle::where('binance_pair_id', $id)->delete();
+        elseif ($timeframe == '1d') BinanceDayCandle::where('binance_pair_id', $id)->delete();
+        elseif ($timeframe == '1w') BinanceWeekCandle::where('binance_pair_id', $id)->delete();
+        elseif ($timeframe == '1M') BinanceMonthCandle::where('binance_pair_id', $id)->delete();
 
     }
 

@@ -28,7 +28,7 @@ class StrategyTest
 
             $candles = (new Binance())->getCandles('BTC/USDT', '1M');
 
-            $signals = Strategy::coraWaveModern($candles, 12);
+            $signals = Strategy::coraWave($candles, 12);
 
             foreach ($signals as $key => $signal) {
                 $last_pre['date'] = Carbon::createFromTimestamp($candles[$key]['time_start'])->toDateTimeString();

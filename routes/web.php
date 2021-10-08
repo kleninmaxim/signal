@@ -45,19 +45,15 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/binance/testEmaBinance', [\App\Http\Controllers\BinanceController::class, 'testEmaBinance']);
 
+    Route::get('/binance/getCandles/{pair}/{timeframe}', [\App\Http\Controllers\BinanceController::class, 'getCandles']);
+
 
 
     Route::get('/tinkoff/test', [\App\Http\Controllers\TinkoffController::class, 'test']);
 
-    Route::get('/tinkoff/loadCandles', [\App\Http\Controllers\TinkoffController::class, 'loadCandles']);
+    Route::get('/tinkoff/loadCandles', [\App\Http\Controllers\TinkoffController::class, 'loadHourCandles']);
 
     Route::get('/tinkoff/loadDayWeekMonthCandles', [\App\Http\Controllers\TinkoffController::class, 'loadDayWeekMonthCandles']);
-
-    Route::get('/binance/getCandles/{pair}/{timeframe}', [\App\Http\Controllers\BinanceController::class, 'getCandles']);
-
-    Route::get('/tinkoff/notifyHourStrategies', [\App\Http\Controllers\TinkoffController::class, 'notifyHourStrategies']);
-
-    Route::get('/binance/notifyHourStrategies', [\App\Http\Controllers\BinanceController::class, 'notifyHourStrategies']);
 
     Route::post(
         '/tinkoff/add-new-ticker',
