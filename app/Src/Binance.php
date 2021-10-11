@@ -47,9 +47,9 @@ class Binance
 
             $pair->save();
 
-/*            $this->recordData($pair, '5m', $notify);
+            $this->recordData($pair, '5m', $notify);
             $this->recordData($pair, '15m', $notify);
-            $this->recordData($pair, '30m', $notify);*/
+            $this->recordData($pair, '30m', $notify);
 /*            $this->recordData($pair, '1h', $notify);
             $this->recordData($pair, '4h', $notify);
             $this->recordData($pair, '1d', $notify);*/
@@ -72,6 +72,28 @@ class Binance
 
     }
 
+    public function getCandlesApiFormat($pair, $timeframe, $timae_start)
+    {
+
+        $api_candles = $this->getCandlesApi($pair, $timeframe, $timae_start);
+
+        foreach ($api_candles as $key => $candle) {
+
+            $candles[$key] = [
+                'open' => $candle[1],
+                'high' => $candle[2],
+                'low' => $candle[3],
+                'close' => $candle[4],
+                'volume' => $candle[5],
+                'time_start' => Carbon::createFromTimestamp($candle[0] / 1000)->toDateTimeString()
+            ];
+
+        }
+
+        return $candles ?? [];
+
+    }
+
     private function recordData($pair, $timeframe, $notify)
     {
 
@@ -83,12 +105,7 @@ class Binance
 
                 $pair_str = str_replace('/', '', $pair->pair);
 
-                $api_candles = Http::get('https://api.binance.com/api/v3/klines', [
-                    'symbol' => $pair_str,
-                    'interval' => $timeframe,
-                    'startTime' => $timae_start,
-                    'limit' => $this->limit,
-                ])->collect()->toArray();
+                $api_candles = $this->getCandlesApi($pair_str, $timeframe, $timae_start);
 
                 $last = array_pop($api_candles);
 
@@ -113,6 +130,18 @@ class Binance
         } while (!empty($api_candles));
 
         return true;
+
+    }
+
+    private function getCandlesApi($pair, $timeframe, $timae_start)
+    {
+
+        return Http::get('https://api.binance.com/api/v3/klines', [
+            'symbol' => $pair,
+            'interval' => $timeframe,
+            'startTime' => $timae_start,
+            'limit' => $this->limit,
+        ])->collect()->toArray();
 
     }
 

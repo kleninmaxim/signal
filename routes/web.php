@@ -47,6 +47,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/binance/getCandles/{pair}/{timeframe}', [\App\Http\Controllers\BinanceController::class, 'getCandles']);
 
+    Route::get('/binance/testCoraWaveOnMinutesCandles', [\App\Http\Controllers\BinanceController::class, 'testCoraWaveOnMinutesCandles']);
+
 
 
     Route::get('/tinkoff/test', [\App\Http\Controllers\TinkoffController::class, 'test']);

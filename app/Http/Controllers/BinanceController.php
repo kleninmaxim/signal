@@ -15,6 +15,13 @@ class BinanceController extends Controller
         $this->binance = new Binance();
     }
 
+    public function testCoraWaveOnMinutesCandles()
+    {
+
+        debug($this->binance->getCandlesApiFormat('BTCUSDT', '5m', 1503003600000));
+
+    }
+
     public function coraWave()
     {
         $result = StrategyTest::capitalJustAction(
