@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Src\Binance;
 use App\Src\StrategyTest;
 
+use App\Models\BinancePair;
+
 class BinanceController extends Controller
 {
 
@@ -18,7 +20,23 @@ class BinanceController extends Controller
     public function testCoraWaveOnMinutesCandles()
     {
 
-        debug($this->binance->getCandlesApiFormat('BTCUSDT', '5m', 1503003600000));
+        $pairs = BinancePair::all();
+
+        foreach ($pairs as $pair) {
+
+            $result = StrategyTest::capitalJustAction(
+                StrategyTest::proccessCoraWaveSimple(
+                    (new Binance())->getCandles($pair->pair, '1M'),
+                    12
+                )
+            );
+
+            if ($result['profit_percentage_sum'] != 0) {
+                debug($pair->pair);
+                debug($result);
+            }
+
+        }
 
     }
 

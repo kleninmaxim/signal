@@ -29,8 +29,11 @@ class TinkoffController extends Controller
                 )
             );
 
-            debug($ticker->ticker);
-            debug($result);
+            if ($result['profit_percentage_sum'] != 0) {
+                debug($ticker->ticker);
+                debug($result);
+            }
+
         }
 
         //return $result;

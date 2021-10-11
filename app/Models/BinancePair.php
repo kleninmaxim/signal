@@ -15,11 +15,41 @@ class BinancePair extends Model
 
     public function getCandles($timeframe)
     {
-        if ($timeframe == '1d') return $this->binanceDayCandles();
+        if ($timeframe == '5m') return $this->binanceFiveMinuteCandles();
+        elseif ($timeframe == '15m') return $this->binanceFifteenMinuteCandle();
+        elseif ($timeframe == '30m') return $this->binanceThirtyMinuteCandle();
+        elseif ($timeframe == '1h') return $this->binanceHourCandle();
+        elseif ($timeframe == '4h') return $this->binanceFourHourCandle();
+        elseif ($timeframe == '1d') return $this->binanceDayCandles();
         elseif ($timeframe == '1w') return $this->binanceWeekCandles();
         elseif ($timeframe == '1M') return $this->binanceMonthCandles();
 
-        return null;
+        return false;
+    }
+
+    public function binanceFiveMinuteCandles()
+    {
+        return $this->hasMany(BinanceFiveMinuteCandle::class);
+    }
+
+    public function binanceFifteenMinuteCandle()
+    {
+        return $this->hasMany(BinanceFifteenMinuteCandle::class);
+    }
+
+    public function binanceThirtyMinuteCandle()
+    {
+        return $this->hasMany(BinanceThirtyMinuteCandle::class);
+    }
+
+    public function binanceHourCandle()
+    {
+        return $this->hasMany(BinanceHourCandle::class);
+    }
+
+    public function binanceFourHourCandle()
+    {
+        return $this->hasMany(BinanceFourHourCandle::class);
     }
 
     public function binanceDayCandles()

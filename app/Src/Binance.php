@@ -47,9 +47,9 @@ class Binance
 
             $pair->save();
 
-            $this->recordData($pair, '5m', $notify);
+/*            $this->recordData($pair, '5m', $notify);
             $this->recordData($pair, '15m', $notify);
-            $this->recordData($pair, '30m', $notify);
+            $this->recordData($pair, '30m', $notify);*/
 /*            $this->recordData($pair, '1h', $notify);
             $this->recordData($pair, '4h', $notify);
             $this->recordData($pair, '1d', $notify);*/
@@ -62,11 +62,22 @@ class Binance
 
     }
 
-    public function getCandles($symbol, $timeframe)
+    public function getCandles($symbol, $timeframe, $desc = true)
     {
 
+        if ($desc) {
+
+            return array_reverse(
+                BinancePair::where('pair', $symbol)->first()
+                ->getCandles($timeframe)->orderByDesc('time_start')->skip(0)->take(50000)
+                ->select('open', 'close', 'high', 'low', 'volume', 'time_start')
+                ->get()->toArray()
+            );
+
+        }
+
         return BinancePair::where('pair', $symbol)->first()
-            ->getCandles($timeframe)
+            ->getCandles($timeframe)->take(1000)
             ->select('open', 'close', 'high', 'low', 'volume', 'time_start')
             ->get()->toArray();
 
