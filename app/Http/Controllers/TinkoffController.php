@@ -18,7 +18,8 @@ class TinkoffController extends Controller
 
     public function coraWave()
     {
-        $tickers = TinkoffTicker::all();
+        //$tickers = TinkoffTicker::all();
+        $tickers = TinkoffTicker::skip(400)->take(100)->get();
 
         foreach ($tickers as $ticker) {
 

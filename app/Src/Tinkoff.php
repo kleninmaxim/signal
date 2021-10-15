@@ -55,10 +55,24 @@ class Tinkoff
 
     }
 
-    public function getCandles($ticker, $timeframe)
+    public function getCandles($ticker, $timeframe, $desc = true)
     {
+        $skip = 0;
+        $take = 50000;
+
+        if ($desc) {
+
+            return array_reverse(
+                TinkoffTicker::where('ticker', $ticker)->first()
+                    ->getCandles($timeframe)->orderByDesc('time_start')->skip($skip)->take($take)
+                    ->select('open', 'close', 'high', 'low', 'volume', 'time_start')
+                    ->get()->toArray()
+            );
+
+        }
+
         return TinkoffTicker::where('ticker', $ticker)->first()
-            ->getCandles($timeframe)
+            ->getCandles($timeframe)->skip($skip)->take($take)
             ->select('open', 'close', 'high', 'low', 'volume', 'time_start')
             ->get()->toArray();
     }
