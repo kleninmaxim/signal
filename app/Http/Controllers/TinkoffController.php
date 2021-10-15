@@ -48,6 +48,13 @@ class TinkoffController extends Controller
 
     }
 
+    public function testLoadTickers()
+    {
+
+        return $this->tinkoff->testLoadTickers();
+
+    }
+
     public function addNewTicker(Request $request)
     {
 

@@ -34,9 +34,9 @@ class Kernel extends ConsoleKernel
             ->everyThreeMinutes()
             ->appendOutputTo(storage_path('/var/www/signal/storage/logs/record_tinkoff_ticker.log'));*/
 
-        $schedule->call('\App\Http\Controllers\BinanceController@loadCandles')
+/*        $schedule->call('\App\Http\Controllers\BinanceController@loadCandles')
             ->everyMinute()
-            ->appendOutputTo(storage_path('/var/www/signal/storage/logs/record_binance_pair.log'));
+            ->appendOutputTo(storage_path('/var/www/signal/storage/logs/record_binance_pair.log'));*/
 
 /*        $schedule->call('\App\Http\Controllers\BinanceController@loadCandles')
             ->everyMinute()

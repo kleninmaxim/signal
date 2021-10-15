@@ -53,6 +53,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/tinkoff/test', [\App\Http\Controllers\TinkoffController::class, 'test']);
 
+    Route::get('/tinkoff/testLoadTickers', [\App\Http\Controllers\TinkoffController::class, 'testLoadTickers']);
+
     Route::get('/tinkoff/coraWave', [\App\Http\Controllers\TinkoffController::class, 'coraWave']);
 
     Route::get('/tinkoff/loadCandles', [\App\Http\Controllers\TinkoffController::class, 'loadHourCandles']);

@@ -43,13 +43,34 @@ class Tinkoff
     public function test()
     {
 
-/*        $ticker_data = $this->client->getCurrencies();
+        /*        $ticker_data = $this->client->getCurrencies();
 
-        debug($ticker_data, true);*/
+                debug($ticker_data, true);*/
 
         $stategy_test = new StrategyTest();
 
         $stategy_test->testTinkoff();
+
+        return true;
+
+    }
+
+    public function testLoadTickers()
+    {
+
+        //$this->client->getInstrumentByTicker('TSLA');
+
+        $stockes = $this->client->getStocks();
+
+        foreach ($stockes as $stock) {
+
+            $ticker = $stock->getTicker();
+
+            echo $ticker . PHP_EOL;
+
+            var_dump($this->addNewTicker($ticker));
+
+        }
 
         return true;
 
