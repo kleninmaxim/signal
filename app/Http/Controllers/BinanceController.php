@@ -17,7 +17,7 @@ class BinanceController extends Controller
         $this->binance = new Binance();
     }
 
-    public function testCoraWaveOnMinutesCandles()
+    public function coraWave()
     {
 
         $pairs = BinancePair::all();
@@ -26,7 +26,7 @@ class BinanceController extends Controller
 
             $result = StrategyTest::capitalJustAction(
                 StrategyTest::proccessCoraWaveSimple(
-                    (new Binance())->getCandles($pair->pair, '1M'),
+                    $this->binance->getCandles($pair->pair, '1M'),
                     12
                 )
             );
@@ -37,41 +37,6 @@ class BinanceController extends Controller
             }
 
         }
-
-    }
-
-    public function coraWave()
-    {
-        $result = StrategyTest::capitalJustAction(
-            StrategyTest::proccessCoraWaveSimple(
-                (new Binance())->getCandles('BTC/USDT', '1M'),
-                12
-            )
-        );
-
-        debug($result, true);
-
-        return $result;
-    }
-
-    public function myStrategy()
-    {
-
-        (new StrategyTest())->testStrategyBinance();
-
-    }
-
-    public function test()
-    {
-
-        (new StrategyTest())->test();
-
-    }
-
-    public function testEmaBinance()
-    {
-
-        (new StrategyTest())->testEmaBinance();
 
     }
 

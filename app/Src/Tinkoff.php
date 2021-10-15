@@ -10,19 +10,14 @@ use jamesRUS52\TinkoffInvest\TIException;
 use jamesRUS52\TinkoffInvest\TIIntervalEnum;
 use jamesRUS52\TinkoffInvest\TISiteEnum;
 
-use App\Src\StrategyTest;
 use App\Traits\TelegramSend;
+use App\Traits\SqlTinkoff;
 
 use App\Models\TinkoffTicker;
-use App\Models\TinkoffHourCandle;
-use App\Models\TinkoffFourHourCandle;
-use App\Models\TinkoffDayCandle;
-use App\Models\TinkoffWeekCandle;
-use App\Models\TinkoffMonthCandle;
 
 class Tinkoff
 {
-    use TelegramSend;
+    use TelegramSend, SqlTinkoff;
 
     private $client;
     private $interval = 120;
@@ -40,25 +35,8 @@ class Tinkoff
 
     }
 
-    public function test()
+    public function LoadAllTickers()
     {
-
-        /*        $ticker_data = $this->client->getCurrencies();
-
-                debug($ticker_data, true);*/
-
-        $stategy_test = new StrategyTest();
-
-        $stategy_test->testTinkoff();
-
-        return true;
-
-    }
-
-    public function testLoadTickers()
-    {
-
-        //$this->client->getInstrumentByTicker('TSLA');
 
         $stockes = $this->client->getStocks();
 
@@ -203,6 +181,9 @@ class Tinkoff
 
     }
 
+
+
+
     private function getHourCandles($figi, $interval = null)
     {
 
@@ -295,78 +276,6 @@ class Tinkoff
 
     }
 
-    private function insertTicker($ticker_data)
-    {
-        $tinkoff = TinkoffTicker::create([
-            'figi' => $ticker_data->getFigi(),
-            'ticker' => $ticker_data->getTicker(),
-            'name' => $ticker_data->getName(),
-            'type' => $ticker_data->getType()
-        ]);
-
-        return $tinkoff->id;
-    }
-
-    private function insertHourCandle($hour_candles, $id)
-    {
-        foreach ($hour_candles as $hour_candle) {
-            TinkoffHourCandle::create([
-                'tinkoff_ticker_id' => $id,
-                'open' => $hour_candle['open'],
-                'close' => $hour_candle['close'],
-                'high' => $hour_candle['high'],
-                'low' => $hour_candle['low'],
-                'volume' => $hour_candle['volume'],
-                'time_start' => $hour_candle['time_start']
-            ]);
-        }
-    }
-
-    private function insertDayCandle($day_candles, $id)
-    {
-        foreach ($day_candles as $day_candle) {
-            TinkoffDayCandle::create([
-                'tinkoff_ticker_id' => $id,
-                'open' => $day_candle['open'],
-                'close' => $day_candle['close'],
-                'high' => $day_candle['high'],
-                'low' => $day_candle['low'],
-                'volume' => $day_candle['volume'],
-                'time_start' => $day_candle['time_start']
-            ]);
-        }
-    }
-
-    private function insertWeekCandle($week_candles, $id)
-    {
-        foreach ($week_candles as $week_candle) {
-            TinkoffWeekCandle::create([
-                'tinkoff_ticker_id' => $id,
-                'open' => $week_candle['open'],
-                'close' => $week_candle['close'],
-                'high' => $week_candle['high'],
-                'low' => $week_candle['low'],
-                'volume' => $week_candle['volume'],
-                'time_start' => $week_candle['time_start']
-            ]);
-        }
-    }
-
-    private function insertMonthCandle($month_candles, $id)
-    {
-        foreach ($month_candles as $month_candle) {
-            TinkoffMonthCandle::create([
-                'tinkoff_ticker_id' => $id,
-                'open' => $month_candle['open'],
-                'close' => $month_candle['close'],
-                'high' => $month_candle['high'],
-                'low' => $month_candle['low'],
-                'volume' => $month_candle['volume'],
-                'time_start' => $month_candle['time_start']
-            ]);
-        }
-    }
-
     private function checkCurrentTimeWithCandle($candles)
     {
 
@@ -397,11 +306,6 @@ class Tinkoff
 
         }
 
-    }
-
-    private function deleteTickerQueue($ticker)
-    {
-        DB::table('tinkoff_tikers_queue')->where('ticker', $ticker)->delete();
     }
 
 }

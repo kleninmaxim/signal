@@ -34,7 +34,7 @@ class Kernel extends ConsoleKernel
             ->everyThreeMinutes()
             ->appendOutputTo(storage_path('/var/www/signal/storage/logs/record_tinkoff_ticker.log'));
 
-/*        $schedule->call('\App\Http\Controllers\TinkoffController@testLoadTickers')
+/*        $schedule->call('\App\Http\Controllers\TinkoffController@LoadAllTickers')
             ->everyMinute()
             ->appendOutputTo(storage_path('logs/record_tinkoff_ticker.log'));*/
 

@@ -19,6 +19,7 @@ use App\Models\BinanceMonthCandle;
 
 class Binance
 {
+
     use TelegramSend;
 
     private $limit = 1000;
@@ -106,6 +107,8 @@ class Binance
         return $candles ?? [];
 
     }
+
+
 
     private function recordData($pair, $timeframe, $notify)
     {

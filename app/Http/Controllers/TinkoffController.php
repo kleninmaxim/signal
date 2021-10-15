@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 
 class TinkoffController extends Controller
 {
+
     public $tinkoff;
 
     public function __construct()
@@ -41,17 +42,10 @@ class TinkoffController extends Controller
 
     }
 
-    public function test()
+    public function LoadAllTickers()
     {
 
-        return $this->tinkoff->test();
-
-    }
-
-    public function testLoadTickers()
-    {
-
-        return $this->tinkoff->testLoadTickers();
+        return $this->tinkoff->LoadAllTickers();
 
     }
 
@@ -80,4 +74,5 @@ class TinkoffController extends Controller
     {
         return $this->tinkoff->loadDayWeekMonthCandles();
     }
+
 }

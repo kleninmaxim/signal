@@ -37,23 +37,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/binance/loadCandles', [\App\Http\Controllers\BinanceController::class, 'loadCandles']);
 
-    Route::get('/binance/test', [\App\Http\Controllers\BinanceController::class, 'test']);
-
     Route::get('/binance/coraWave', [\App\Http\Controllers\BinanceController::class, 'coraWave']);
 
-    Route::get('/binance/myStrategy', [\App\Http\Controllers\BinanceController::class, 'myStrategy']);
 
-    Route::get('/binance/testEmaBinance', [\App\Http\Controllers\BinanceController::class, 'testEmaBinance']);
-
-    Route::get('/binance/getCandles/{pair}/{timeframe}', [\App\Http\Controllers\BinanceController::class, 'getCandles']);
-
-    Route::get('/binance/testCoraWaveOnMinutesCandles', [\App\Http\Controllers\BinanceController::class, 'testCoraWaveOnMinutesCandles']);
-
-
-
-    Route::get('/tinkoff/test', [\App\Http\Controllers\TinkoffController::class, 'test']);
-
-    Route::get('/tinkoff/testLoadTickers', [\App\Http\Controllers\TinkoffController::class, 'testLoadTickers']);
 
     Route::get('/tinkoff/coraWave', [\App\Http\Controllers\TinkoffController::class, 'coraWave']);
 
@@ -79,6 +65,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         return view('dashboard');
     })->name('dashboard');
 
+
+    //old
+    Route::get('/tinkoff/LoadAllTickers', [\App\Http\Controllers\TinkoffController::class, 'LoadAllTickers']);
 
 });
 

@@ -8,10 +8,6 @@ use App\Models\StrategyDefaultOption;
 class Strategy
 {
 
-    private static $short = 'SHORT';
-    private static $long = 'LONG';
-    private static $nothing = 'NOTHING';
-
     public static function getOptions($exchange, $strategy_name, $timeframe)
     {
         return json_decode(
@@ -197,35 +193,6 @@ class Strategy
 
     }
 
-    public static function proccessMacd($candles, $fast_length_ema, $slow_length_ema, $signal_length, $after = false)
-    {
-
-        $hist = self::macd($candles, $fast_length_ema, $slow_length_ema, $signal_length);
-
-        if (empty($hist)) return self::$nothing;
-
-        $last = array_pop($hist);
-
-        $pre_last = array_pop($hist);
-
-        if ($after) {
-
-            $last = $pre_last;
-
-            $pre_last = array_pop($hist);
-
-        }
-
-        if ($last <= 0 && $pre_last >= 0) {
-            return self::$short;
-        } elseif ($last >= 0 && $pre_last <= 0) {
-            return self::$long;
-        } else {
-            return self::$nothing;
-        }
-
-    }
-
     public static function ema($candles, $length)
     {
 
@@ -305,6 +272,8 @@ class Strategy
         return array_reverse($signals ?? []);
 
     }
+
+
 
     private static function f_adj_crwma($sources, $length, $Start_Wt, $r_multi)
     {
