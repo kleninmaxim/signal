@@ -2,8 +2,6 @@
 
 namespace App\Src;
 
-use Carbon\Carbon;
-
 class CapitalRule
 {
 

@@ -28,7 +28,7 @@ class BinanceController extends Controller
             )
         );
 
-        debug($result);
+        debug($result['final']);
 
     }
 

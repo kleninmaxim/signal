@@ -80,7 +80,19 @@ class Strategy
             ['ema' => Indicator::ema($candles, $length)]
         ); // Добавляет в каждую свечу дополнительные значения индикатора
 
-        return self::getActionsEmaSimple($candles);
+        return self::getActionsMovingSimple($candles, 'ema');
+
+    }
+
+    public static function wmaSimple($candles, $length)
+    {
+
+        Indicator::process(
+            $candles,
+            ['wma' => Indicator::wma($candles, $length)]
+        ); // Добавляет в каждую свечу дополнительные значения индикатора
+
+        return self::getActionsMovingSimple($candles, 'wma');
 
     }
 
@@ -117,6 +129,7 @@ class Strategy
 
 
     /*
+     * Функция предназначена для таких как ema, wma и т. д.
      * OUTPUT: Отдает массив в следующем виде
         Array
         (
@@ -135,12 +148,12 @@ class Strategy
                 )
         )
     */
-    private static function getActionsEmaSimple($candles)
+    private static function getActionsMovingSimple($candles, $name)
     {
 
         $candles = array_values(
-            array_filter($candles, function ($v) {
-                return $v['ema'] != 0;
+            array_filter($candles, function ($v) use ($name) {
+                return $v[$name] != 0;
             })
         );
 
@@ -148,7 +161,7 @@ class Strategy
 
         foreach ($candles as $candle) {
 
-            $signal = ($candle['ema'] <= $candle['close']) ? 'long' : 'short';
+            $signal = ($candle[$name] <= $candle['close']) ? 'long' : 'short';
 
             if (isset($previous_signal) && $previous_signal != $signal) {
 
