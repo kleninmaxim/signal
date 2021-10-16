@@ -18,6 +18,20 @@ class BinanceController extends Controller
         $this->binance = new Binance();
     }
 
+    public function ema()
+    {
+
+        $result = CapitalRule::simple(
+            Strategy::emaSimple(
+                $this->binance->getCandles('BTC/USDT', '1d'),
+                100
+            )
+        );
+
+        debug($result);
+
+    }
+
     public function coraWave()
     {
 

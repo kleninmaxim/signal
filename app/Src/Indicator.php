@@ -78,6 +78,51 @@ class Indicator
 
     }
 
+    public static function ema($candles, $length)
+    {
+
+        $ema = [];
+
+        $i = 0;
+
+        foreach ($candles as $candle) {
+
+            if ($i == $length - 1) {
+
+                $sum = 0;
+
+                $j = 0;
+
+                foreach ($candles as $candle_len) {
+
+                    $sum += $candle_len['close'];
+
+                    $j++;
+
+                    if ($j >= $length) break;
+
+                }
+
+                $ema[] = $sum / $length;
+
+            } elseif ($i > $length - 1) {
+
+                $ema[] = 2 / ($length + 1) * $candle['close'] + (1 - 2 / ($length + 1)) * $ema[$i - 1];
+
+            } else {
+
+                $ema[] = 0;
+
+            }
+
+            $i++;
+
+        }
+
+        return $ema;
+
+    }
+
 
     //Нужно исправить индикаторы ниже
 
@@ -231,51 +276,6 @@ class Indicator
         }
 
         return [];
-
-    }
-
-    public static function ema($candles, $length)
-    {
-
-        $ema = [];
-
-        $i = 0;
-
-        foreach ($candles as $candle) {
-
-            if ($i == $length - 1) {
-
-                $sum = 0;
-
-                $j = 0;
-
-                foreach ($candles as $candle_len) {
-
-                    $sum += $candle_len['close'];
-
-                    $j++;
-
-                    if ($j >= $length) break;
-
-                }
-
-                $ema[] = $sum / $length;
-
-            } elseif ($i > $length - 1) {
-
-                $ema[] = 2 / ($length + 1) * $candle['close'] + (1 - 2 / ($length + 1)) * $ema[$i - 1];
-
-            } else {
-
-                $ema[] = 0;
-
-            }
-
-            $i++;
-
-        }
-
-        return $ema;
 
     }
 

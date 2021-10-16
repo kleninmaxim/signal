@@ -66,10 +66,8 @@ class CapitalRule
 
         return [
             'profit_percentage_sum' => $profit_percentage_sum,
-            'days' => round($minute_sum / (60 * 24)),
-            'profit_percentage_apy_sum' => ($minute_sum != 0)
-                ? $profit_percentage_sum * 525600 / $minute_sum
-                : 0
+            'days' => Math::minuteToDays($minute_sum),
+            'profit_percentage_apy_sum' => Math::annualApy($profit_percentage_sum, $minute_sum)
         ];
 
     }
@@ -79,10 +77,10 @@ class CapitalRule
 
         foreach ($indicators as $key => $indicator) {
 
-            $indicators[$key]['profit_percentage_apy'] =
-                ($indicator['minutes'] != 0)
-                ? $indicator['profit_percentage'] * 525600 / $indicator['minutes']
-                : 0;
+            $indicators[$key]['profit_percentage_apy'] = Math::annualApy(
+                $indicator['profit_percentage'],
+                $indicator['minutes']
+            );
 
         }
 
@@ -96,8 +94,8 @@ class CapitalRule
         foreach ($deals as $deal) {
 
             $indicators[] = [
-                'minutes' => Carbon::parse($deal['time_sell'])->diffInMinutes(Carbon::parse($deal['time_buy'])),
-                'profit_percentage' => ($deal['sell'] - $deal['buy']) / $deal['buy'] * 100
+                'minutes' => Math::diffInMinutes($deal['time_buy'], $deal['time_sell']),
+                'profit_percentage' => Math::percentage($deal['buy'], $deal['sell'])
             ];
 
         }
