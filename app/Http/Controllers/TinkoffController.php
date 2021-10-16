@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\TinkoffTicker;
-use App\Src\StrategyTest;
-use App\Src\Tinkoff;
 use Illuminate\Http\Request;
+
+use App\Src\CapitalRule;
+use App\Src\Strategy;
+use App\Src\Tinkoff;
+
+use App\Models\TinkoffTicker;
 
 class TinkoffController extends Controller
 {
@@ -24,16 +27,16 @@ class TinkoffController extends Controller
 
         foreach ($tickers as $ticker) {
 
-            $result = StrategyTest::capitalJustAction(
-                StrategyTest::proccessCoraWaveSimple(
-                    (new Tinkoff())->getCandles($ticker->ticker, '1M'),
+            $result = CapitalRule::simple(
+                Strategy::coraWaveSimple(
+                    $this->tinkoff->getCandles($ticker->ticker, '1M'),
                     12
                 )
             );
 
-            if ($result['profit_percentage_sum'] != 0) {
+            if ($result['final'] != null) {
                 debug($ticker->ticker);
-                debug($result);
+                debug($result['final']);
             }
 
         }

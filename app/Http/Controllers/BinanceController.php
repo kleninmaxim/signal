@@ -3,14 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Src\Binance;
-use App\Src\StrategyTest;
+use App\Src\CapitalRule;
+use App\Src\Strategy;
 
 use App\Models\BinancePair;
 
 class BinanceController extends Controller
 {
 
-    private  $binance;
+    private $binance;
 
     public function __construct()
     {
@@ -24,16 +25,16 @@ class BinanceController extends Controller
 
         foreach ($pairs as $pair) {
 
-            $result = StrategyTest::capitalJustAction(
-                StrategyTest::proccessCoraWaveSimple(
+            $result = CapitalRule::simple(
+                Strategy::coraWaveSimple(
                     $this->binance->getCandles($pair->pair, '1M'),
                     12
                 )
             );
 
-            if ($result['profit_percentage_sum'] != 0) {
+            if ($result['final'] != null) {
                 debug($pair->pair);
-                debug($result);
+                debug($result['final']);
             }
 
         }
