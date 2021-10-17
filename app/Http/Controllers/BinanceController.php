@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Src\Binance;
-use App\Src\CapitalRule;
+use App\Src\Capital;
 use App\Src\Strategy;
 
 use App\Models\BinancePair;
@@ -21,7 +21,7 @@ class BinanceController extends Controller
     public function ema()
     {
 
-        $result = CapitalRule::simple(
+        $result = Capital::simple(
             Strategy::emaSimple(
                 $this->binance->getCandles('BTC/USDT', '1d'),
                 100
@@ -39,7 +39,7 @@ class BinanceController extends Controller
 
         foreach ($pairs as $pair) {
 
-            $result = CapitalRule::simple(
+            $result = Capital::simple(
                 Strategy::coraWaveSimple(
                     $this->binance->getCandles($pair->pair, '1M'),
                     12

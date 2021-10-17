@@ -5,8 +5,13 @@ namespace App\Src;
 use App\Models\Strategy as S;
 use App\Models\StrategyDefaultOption;
 
+use App\Traits\Strategy\CoraWaveStrategy;
+use App\Traits\Strategy\MovingAverageStrategy;
+
 class Strategy
 {
+
+    use CoraWaveStrategy, MovingAverageStrategy;
 
     /*
      * INPUT: Все свечи приходят в таком массиве,
@@ -50,185 +55,6 @@ class Strategy
             ])->first()->options,
             true
         );
-
-    }
-
-    /*
-     * OUTPUT: Возвращает массив с простыми сигналами
-        Array
-        (
-            [0] => Array
-                (
-                    [date] => 2018-11-01 03:00:00
-                    [close] => 4041.32
-                    [signal] => short
-                )
-
-            [1] => Array
-                (
-                    [date] => 2019-04-01 03:00:00
-                    [close] => 5320.81
-                    [signal] => long
-                )
-        )
-    */
-    public static function emaSimple($candles, $length)
-    {
-
-        Indicator::process(
-            $candles,
-            ['ema' => Indicator::ema($candles, $length)]
-        ); // Добавляет в каждую свечу дополнительные значения индикатора
-
-        return self::getActionsMovingSimple($candles, 'ema');
-
-    }
-
-    public static function wmaSimple($candles, $length)
-    {
-
-        Indicator::process(
-            $candles,
-            ['wma' => Indicator::wma($candles, $length)]
-        ); // Добавляет в каждую свечу дополнительные значения индикатора
-
-        return self::getActionsMovingSimple($candles, 'wma');
-
-    }
-
-    /*
-     * OUTPUT: Возвращает массив с простыми сигналами
-        Array
-        (
-            [0] => Array
-                (
-                    [date] => 2018-11-01 03:00:00
-                    [close] => 4041.32
-                    [signal] => short
-                )
-
-            [1] => Array
-                (
-                    [date] => 2019-04-01 03:00:00
-                    [close] => 5320.81
-                    [signal] => long
-                )
-        )
-    */
-    public static function coraWaveSimple($candles, $length)
-    {
-
-        Indicator::process(
-            $candles,
-            ['cora_wave' => Indicator::coraWave($candles, $length)]
-        ); // Добавляет в каждую свечу дополнительные значения индикатора
-
-        return self::getActionsCoraWaveSimple($candles); // Возвращает массив с сигналами
-
-    }
-
-
-    /*
-     * Функция предназначена для таких как ema, wma и т. д.
-     * OUTPUT: Отдает массив в следующем виде
-        Array
-        (
-            [0] => Array
-                (
-                    [date] => 2018-11-01 03:00:00
-                    [close] => 4041.32
-                    [signal] => short
-                )
-
-            [1] => Array
-                (
-                    [date] => 2019-04-01 03:00:00
-                    [close] => 5320.81
-                    [signal] => long
-                )
-        )
-    */
-    private static function getActionsMovingSimple($candles, $name)
-    {
-
-        $candles = array_values(
-            array_filter($candles, function ($v) use ($name) {
-                return $v[$name] != 0;
-            })
-        );
-
-        $actions = [];
-
-        foreach ($candles as $candle) {
-
-            $signal = ($candle[$name] <= $candle['close']) ? 'long' : 'short';
-
-            if (isset($previous_signal) && $previous_signal != $signal) {
-
-                $actions[] = [
-                    'date' => $candle['time_start'],
-                    'close' => $candle['close'],
-                    'signal' => $signal
-                ];
-
-            }
-
-            $previous_signal = $signal;
-
-        }
-
-        return $actions;
-
-    }
-
-    /*
-     * OUTPUT: Отдает массив в следующем виде
-        Array
-        (
-            [0] => Array
-                (
-                    [date] => 2018-11-01 03:00:00
-                    [close] => 4041.32
-                    [signal] => short
-                )
-
-            [1] => Array
-                (
-                    [date] => 2019-04-01 03:00:00
-                    [close] => 5320.81
-                    [signal] => long
-                )
-        )
-    */
-    private static function getActionsCoraWaveSimple($candles)
-    {
-
-        $previous_candle = array_shift($candles);
-
-        $actions = [];
-
-        foreach ($candles as $candle) {
-
-            $signal = ($previous_candle['cora_wave'] <= $candle['cora_wave']) ? 'long' : 'short';
-
-            if (isset($previous_signal) && $previous_signal != $signal) {
-
-                $actions[] = [
-                    'date' => $candle['time_start'],
-                    'close' => $candle['close'],
-                    'signal' => $signal
-                ];
-
-            }
-
-            $previous_signal = $signal;
-            $previous_candle = $candle;
-
-        }
-
-        array_shift($actions);
-
-        return $actions;
 
     }
 

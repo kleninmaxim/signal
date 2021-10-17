@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Traits\old;
+namespace App\Traits\Old;
 
 trait TinkoffControllerOld
 {

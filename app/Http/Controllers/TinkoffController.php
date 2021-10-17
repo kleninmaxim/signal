@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-use App\Src\CapitalRule;
+use App\Src\Capital;
 use App\Src\Strategy;
 use App\Src\Tinkoff;
 
@@ -27,7 +27,7 @@ class TinkoffController extends Controller
 
         foreach ($tickers as $ticker) {
 
-            $result = CapitalRule::simple(
+            $result = Capital::simple(
                 Strategy::coraWaveSimple(
                     $this->tinkoff->getCandles($ticker->ticker, '1M'),
                     12

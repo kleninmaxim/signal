@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Src;
+namespace App\Traits\Capital;
 
-class CapitalRule
+use App\Src\Math;
+
+trait SimpleCapital
 {
 
     /*
