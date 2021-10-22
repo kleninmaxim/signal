@@ -2,6 +2,7 @@
 
 namespace App\Src;
 
+use App\Traits\Old\TinkoffOld;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -17,7 +18,7 @@ use App\Models\TinkoffTicker;
 
 class Tinkoff
 {
-    use TelegramSend, SqlTinkoff;
+    use TelegramSend, SqlTinkoff, TinkoffOld;
 
     private $client;
     private $interval = 120;
@@ -32,25 +33,6 @@ class Tinkoff
 
         $this->telegram_token = config('api.telegram_token_2');
         $this->chat_id = config('api.chat_id_2');
-
-    }
-
-    public function LoadAllTickers()
-    {
-
-        $stockes = $this->client->getStocks();
-
-        foreach ($stockes as $stock) {
-
-            $ticker = $stock->getTicker();
-
-            echo $ticker . PHP_EOL;
-
-            var_dump($this->addNewTicker($ticker));
-
-        }
-
-        return true;
 
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Traits\Old\TinkoffControllerOld;
 use Illuminate\Http\Request;
 
 use App\Src\Capital;
@@ -12,6 +13,8 @@ use App\Models\TinkoffTicker;
 
 class TinkoffController extends Controller
 {
+
+    use TinkoffControllerOld;
 
     public $tinkoff;
 
@@ -42,13 +45,6 @@ class TinkoffController extends Controller
         }
 
         //return $result;
-
-    }
-
-    public function LoadAllTickers()
-    {
-
-        return $this->tinkoff->LoadAllTickers();
 
     }
 
