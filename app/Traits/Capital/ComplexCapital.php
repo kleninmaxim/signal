@@ -4,7 +4,7 @@ namespace App\Traits\Capital;
 
 use App\Src\Math;
 
-trait SimpleCapital
+trait ComplexCapital
 {
 
     /*
@@ -26,43 +26,45 @@ trait SimpleCapital
                 )
         )
     */
-    public static function simple($data)
+    public static function complex($data)
     {
 
         if (count($data) >= 5) {
 
-            self::deleteNotActualSignalsSimple($data); // удаление невыполнимых/неактуальных сделок
+            self::deleteNotActualSignalsComplex($data); // удаление невыполнимых/неактуальных сделок
 
-            $deals = self::getDealsSimple($data); // получение массива сделок
+            $deals = self::getDealsComplex($data); // получение массива сделок
 
-            $indicators = self::getIndicatorsSimple($deals); // получение основных параметров
+            $indicators = self::getIndicatorsComplex($deals); // получение основных параметров
 
-            self::getParametersSimple($indicators); // получение дополнительных параметров
+            self::getParametersComplex($indicators); // получение дополнительных параметров
 
         }
 
         return [
             'deals' => $deals ?? null,
             'indicators' => $indicators ?? null,
-            'final' => isset($indicators) ? self::finalParametersSimple($indicators) : null, // получение суммарных показателей
+            'final' => isset($indicators) ? self::finalParametersComplex($indicators) : null, // получение суммарных показателей
         ];
 
     }
 
-    private static function finalParametersSimple($indicators)
+    private static function finalParametersComplex($indicators)
     {
 
-        $profit_percentage_sum = 0;
+        $price_change = 1;
 
         $minute_sum = 0;
 
         foreach ($indicators as $indicator) {
 
-            $profit_percentage_sum += $indicator['profit_percentage'];
+            $price_change *= $indicator['price_change'];
 
             $minute_sum += $indicator['minutes'];
 
         }
+
+        $profit_percentage_sum = ($price_change - 1) * 100;
 
         return [
             'profit_percentage_sum' => $profit_percentage_sum,
@@ -72,7 +74,7 @@ trait SimpleCapital
 
     }
 
-    private static function getParametersSimple(&$indicators)
+    private static function getParametersComplex(&$indicators)
     {
 
         foreach ($indicators as $key => $indicator) {
@@ -86,7 +88,7 @@ trait SimpleCapital
 
     }
 
-    private static function getIndicatorsSimple($deals)
+    private static function getIndicatorsComplex($deals)
     {
 
         $indicators = [];
@@ -95,7 +97,8 @@ trait SimpleCapital
 
             $indicators[] = [
                 'minutes' => Math::diffInMinutes($deal['time_buy'], $deal['time_sell']),
-                'profit_percentage' => Math::percentage($deal['buy'], $deal['sell'])
+                'profit_percentage' => Math::percentage($deal['buy'], $deal['sell']),
+                'price_change' => Math::change($deal['buy'], $deal['sell'])
             ];
 
         }
@@ -125,7 +128,7 @@ trait SimpleCapital
                 )
         )
     */
-    private static function getDealsSimple($data)
+    private static function getDealsComplex($data)
     {
 
         $deals = [];
@@ -161,7 +164,7 @@ trait SimpleCapital
 
     }
 
-    private static function deleteNotActualSignalsSimple(&$data)
+    private static function deleteNotActualSignalsComplex(&$data)
     {
 
         if ($data[0]['signal'] == 'short') array_shift($data);

@@ -21,6 +21,13 @@ class Math
 
     }
 
+    public static function change($x, $y)
+    {
+
+        return round($y / $x, 2);
+
+    }
+
     public static function annualApy($percentage, $minutes)
     {
 

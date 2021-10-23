@@ -41,6 +41,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/binance/ema', [\App\Http\Controllers\BinanceController::class, 'ema']);
 
+    Route::get('/binance/test', [\App\Http\Controllers\BinanceController::class, 'test']);
+
 
 
     Route::get('/tinkoff/coraWave', [\App\Http\Controllers\TinkoffController::class, 'coraWave']);

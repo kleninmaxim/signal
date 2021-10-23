@@ -18,6 +18,20 @@ class BinanceController extends Controller
         $this->binance = new Binance();
     }
 
+    public function test()
+    {
+
+        $result = Capital::complex(
+            Strategy::coraWaveSimple(
+                $this->binance->getCandles('BTC/USDT', '1M'),
+                12
+            )
+        );
+
+        debug($result);
+
+    }
+
     public function ema()
     {
 
@@ -36,6 +50,7 @@ class BinanceController extends Controller
     {
 
         $pairs = BinancePair::all();
+        $pairs = BinancePair::where('pair', 'BTC/USDT')->get();
 
         foreach ($pairs as $pair) {
 
