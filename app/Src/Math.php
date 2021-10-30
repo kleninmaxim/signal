@@ -24,7 +24,7 @@ class Math
     public static function change($x, $y)
     {
 
-        return round($y / $x, 2);
+        return round($y / $x, 6);
 
     }
 

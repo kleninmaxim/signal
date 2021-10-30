@@ -32,6 +32,10 @@ Route::get('/', function () {
 
 });
 
+Route::get('/binance/tickers', [\App\Http\Controllers\BinanceController::class, 'allTickers']);
+
+Route::get('/tinkoff/tickers', [\App\Http\Controllers\TinkoffController::class, 'allTickers']);
+
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 

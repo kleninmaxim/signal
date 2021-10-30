@@ -22,9 +22,9 @@ class BinanceController extends Controller
     {
 
         $result = Capital::complex(
-            Strategy::coraWaveSimple(
-                $this->binance->getCandles('BTC/USDT', '1M'),
-                12
+            Strategy::emaSimple(
+                $this->binance->getCandles('BTC/USDT', '5m'),
+                1000
             )
         );
 
@@ -56,14 +56,14 @@ class BinanceController extends Controller
 
             $result = Capital::simple(
                 Strategy::coraWaveSimple(
-                    $this->binance->getCandles($pair->pair, '1M'),
+                    $this->binance->getCandles($pair->pair, '5m'),
                     12
                 )
             );
 
             if ($result['final'] != null) {
                 debug($pair->pair);
-                debug($result['final']);
+                debug($result['indicators']);
             }
 
         }
@@ -74,6 +74,19 @@ class BinanceController extends Controller
     {
 
         return $this->binance->loadCandles();
+
+    }
+
+    public function allTickers()
+    {
+
+        $tickers = BinancePair::orderBy('pair')->get()->toArray();
+
+        foreach ($tickers as $ticker) {
+
+            debug($ticker['pair']);
+
+        }
 
     }
 

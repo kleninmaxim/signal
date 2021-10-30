@@ -64,7 +64,7 @@ trait ComplexCapital
 
         }
 
-        $profit_percentage_sum = ($price_change - 1) * 100;
+        $profit_percentage_sum = round(($price_change - 1) * 100, 2);
 
         return [
             'profit_percentage_sum' => $profit_percentage_sum,
