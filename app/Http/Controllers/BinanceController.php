@@ -90,4 +90,18 @@ class BinanceController extends Controller
 
     }
 
+    public function emaBtc()
+    {
+
+        $result = Capital::simple(
+            Strategy::emaSimple(
+                $this->binance->getCandles('BTC/USDT', '1d'),
+                100
+            )
+        );
+
+        debug($result);
+
+    }
+
 }
