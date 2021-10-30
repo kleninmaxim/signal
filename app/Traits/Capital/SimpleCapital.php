@@ -56,18 +56,73 @@ trait SimpleCapital
 
         $minute_sum = 0;
 
+        $negative = 0;
+
+        $positive = 0;
+
+        $i = 0;
+
+        $j = 0;
+
+        $n = 0;
+
+        $p = 0;
+
+        $sequence_of_negative = [];
+
+        $sequence_of_positive = [];
+
         foreach ($indicators as $indicator) {
 
             $profit_percentage_sum += $indicator['profit_percentage'];
 
             $minute_sum += $indicator['minutes'];
 
+            if ($indicator['profit_percentage'] <= 0) {
+
+                $negative += $indicator['profit_percentage'];
+
+                $i++;
+
+                $n++;
+
+                if ($j != 0) $sequence_of_positive[] = $j;
+
+                $j = 0;
+
+            } else {
+
+                if ($i != 0) $sequence_of_negative[] = $i;
+
+                $positive += $indicator['profit_percentage'];
+
+                $j++;
+
+                $p++;
+
+                $i = 0;
+            }
+
         }
+
+        if ($j != 0) $sequence_of_positive[] = $j;
+
+        if ($i != 0) $sequence_of_negative[] = $i;
+
+        $sequence_of_negative = array_count_values($sequence_of_negative);
+        $sequence_of_positive = array_count_values($sequence_of_positive);
+
+        ksort($sequence_of_negative);
+        ksort($sequence_of_positive);
 
         return [
             'profit_percentage_sum' => $profit_percentage_sum,
             'days' => Math::minuteToDays($minute_sum),
-            'profit_percentage_apy_sum' => Math::annualApy($profit_percentage_sum, $minute_sum)
+            'profit_percentage_apy_sum' => Math::annualApy($profit_percentage_sum, $minute_sum),
+            'sequence_of_negative' => $sequence_of_negative,
+            'sequence_of_positive' => $sequence_of_positive,
+            'average_negative' => ($n != 0) ? $negative / $n : 0,
+            'average_positive' => ($p != 0) ? $positive / $p : 0,
         ];
 
     }
