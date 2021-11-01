@@ -21,14 +21,33 @@ class BinanceController extends Controller
     public function test()
     {
 
-        $result = Capital::complex(
-            Strategy::emaSimple(
-                $this->binance->getCandles('BTC/USDT', '5m'),
-                1000
-            )
-        );
+        $pairs = BinancePair::where('pair', 'BTC/USDT')->get();
+        $pairs = BinancePair::all();
 
-        debug($result);
+        $sum = 0;
+        $day = 0;
+
+        foreach ($pairs as $pair) {
+
+            $result = Capital::simple(
+                Strategy::coraWaveQuick(
+                    $this->binance->getCandles($pair->pair, '4h'),
+                    12
+                )
+            );
+
+            if ($result['final'] != null) {
+                //debug($pair->pair);
+                //debug($result['final']);
+                $sum += $result['final']['profit_percentage_sum'];
+                $day = max($day, $result['final']['days']);
+            }
+
+        }
+
+        debug($sum / count($pairs));
+        debug($day);
+        debug($sum / count($pairs) * 365 / $day);
 
     }
 

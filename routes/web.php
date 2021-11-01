@@ -57,6 +57,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/tinkoff/loadDayWeekMonthCandles', [\App\Http\Controllers\TinkoffController::class, 'loadDayWeekMonthCandles']);
 
+    Route::get('/tinkoff/test', [\App\Http\Controllers\TinkoffController::class, 'test']);
+
+
     Route::post(
         '/tinkoff/add-new-ticker',
         [\App\Http\Controllers\TinkoffController::class, 'addNewTicker']

@@ -23,6 +23,41 @@ class TinkoffController extends Controller
         $this->tinkoff = new Tinkoff();
     }
 
+    public function test()
+    {
+
+        $tickers = TinkoffTicker::skip(0)->take(100)->get();
+
+        $sum = 0;
+        $sum_apy = 0;
+        $day = 0;
+
+        foreach ($tickers as $ticker) {
+
+            $result = Capital::complex(
+                Strategy::coraWaveSimple(
+                    $this->tinkoff->getCandles($ticker->ticker, '1w'),
+                    12
+                )
+            );
+
+            if ($result['final'] != null) {
+                //debug($ticker->ticker);
+                //debug($result['final']);
+                $sum += $result['final']['profit_percentage_sum'];
+                $sum_apy += $result['final']['profit_percentage_apy_sum'];
+                $day = max($day, $result['final']['days']);
+            }
+
+        }
+
+        debug($sum / count($tickers));
+        debug($day);
+        debug($sum / count($tickers) * 365 / $day);
+        debug($sum_apy / count($tickers));
+
+    }
+
     public function coraWave()
     {
         //$tickers = TinkoffTicker::all();
@@ -33,7 +68,7 @@ class TinkoffController extends Controller
 
         foreach ($tickers as $ticker) {
 
-            $result = Capital::complex(
+            $result = Capital::simple(
                 Strategy::coraWaveSimple(
                     $this->tinkoff->getCandles($ticker->ticker, '1M'),
                     12
