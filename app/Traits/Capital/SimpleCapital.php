@@ -44,12 +44,12 @@ trait SimpleCapital
         return [
             'deals' => $deals ?? null,
             'indicators' => $indicators ?? null,
-            'final' => isset($indicators) ? self::finalParametersSimple($indicators) : null, // получение суммарных показателей
+            'final' => isset($indicators) ? self::finalParametersSimple($indicators, $deals ?? null) : null, // получение суммарных показателей
         ];
 
     }
 
-    private static function finalParametersSimple($indicators)
+    private static function finalParametersSimple($indicators, $deals)
     {
 
         $profit_percentage_sum = 0;
@@ -71,6 +71,11 @@ trait SimpleCapital
         $sequence_of_negative = [];
 
         $sequence_of_positive = [];
+
+        $first = array_shift($deals);
+        $last = array_pop($deals);
+
+        $minutes = Math::diffInMinutes($first['time_buy'], $last['time_sell']);
 
         foreach ($indicators as $indicator) {
 
@@ -117,8 +122,8 @@ trait SimpleCapital
 
         return [
             'profit_percentage_sum' => $profit_percentage_sum,
-            'days' => Math::minuteToDays($minute_sum),
-            'profit_percentage_apy_sum' => Math::annualApy($profit_percentage_sum, $minute_sum),
+            'days' => Math::minuteToDays($minutes),
+            'profit_percentage_apy_sum' => Math::annualApy($profit_percentage_sum, $minutes),
             'sequence_of_negative' => $sequence_of_negative,
             'sequence_of_positive' => $sequence_of_positive,
             'average_negative' => ($n != 0) ? $negative / $n : 0,

@@ -44,17 +44,22 @@ trait ComplexCapital
         return [
             'deals' => $deals ?? null,
             'indicators' => $indicators ?? null,
-            'final' => isset($indicators) ? self::finalParametersComplex($indicators) : null, // получение суммарных показателей
+            'final' => isset($indicators) ? self::finalParametersComplex($indicators, $deals ?? null) : null, // получение суммарных показателей
         ];
 
     }
 
-    private static function finalParametersComplex($indicators)
+    private static function finalParametersComplex($indicators, $deals)
     {
 
         $price_change = 1;
 
         $minute_sum = 0;
+
+        $first = array_shift($deals);
+        $last = array_pop($deals);
+
+        $minutes = Math::diffInMinutes($first['time_buy'], $last['time_sell']);
 
         foreach ($indicators as $indicator) {
 
@@ -95,11 +100,15 @@ trait ComplexCapital
 
         foreach ($deals as $deal) {
 
+            $profit_percentage = Math::percentage($deal['buy'], $deal['sell']);
+
             $indicators[] = [
                 'minutes' => Math::diffInMinutes($deal['time_buy'], $deal['time_sell']),
-                'profit_percentage' => Math::percentage($deal['buy'], $deal['sell']),
+                'profit_percentage' => $profit_percentage,
                 'price_change' => Math::change($deal['buy'], $deal['sell'])
             ];
+
+            echo $profit_percentage . PHP_EOL;
 
         }
 

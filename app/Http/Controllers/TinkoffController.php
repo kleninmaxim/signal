@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\TinkoffTestJob;
 use App\Traits\Old\TinkoffControllerOld;
 use Illuminate\Http\Request;
 
@@ -26,35 +27,135 @@ class TinkoffController extends Controller
     public function test()
     {
 
-        $tickers = TinkoffTicker::skip(0)->take(100)->get();
+        dispatch(new TinkoffTestJob(
+                '1d',
+                12,
+                'simple',
+                'simple'
+            )
+        );
 
-        $sum = 0;
-        $sum_apy = 0;
-        $day = 0;
+        /*dispatch(new TinkoffTestJob(
+                '1d',
+                12,
+                'simple',
+                'complex'
+            )
+        );
 
-        foreach ($tickers as $ticker) {
+        dispatch(new TinkoffTestJob(
+                '1d',
+                12,
+                'quick',
+                'simple'
+            )
+        );
 
-            $result = Capital::complex(
-                Strategy::coraWaveSimple(
-                    $this->tinkoff->getCandles($ticker->ticker, '1w'),
-                    12
-                )
-            );
+        dispatch(new TinkoffTestJob(
+                '1d',
+                12,
+                'quick',
+                'complex'
+            )
+        );
 
-            if ($result['final'] != null) {
-                //debug($ticker->ticker);
-                //debug($result['final']);
-                $sum += $result['final']['profit_percentage_sum'];
-                $sum_apy += $result['final']['profit_percentage_apy_sum'];
-                $day = max($day, $result['final']['days']);
-            }
+        dispatch(new TinkoffTestJob(
+                '1w',
+                12,
+                'simple',
+                'simple'
+            )
+        );
 
-        }
+        dispatch(new TinkoffTestJob(
+                '1w',
+                12,
+                'simple',
+                'complex'
+            )
+        );
 
-        debug($sum / count($tickers));
-        debug($day);
-        debug($sum / count($tickers) * 365 / $day);
-        debug($sum_apy / count($tickers));
+        dispatch(new TinkoffTestJob(
+                '1w',
+                12,
+                'quick',
+                'simple'
+            )
+        );
+
+        dispatch(new TinkoffTestJob(
+                '1w',
+                12,
+                'quick',
+                'complex'
+            )
+        );
+
+        dispatch(new TinkoffTestJob(
+                '1M',
+                12,
+                'simple',
+                'simple'
+            )
+        );
+
+        dispatch(new TinkoffTestJob(
+                '1M',
+                12,
+                'simple',
+                'complex'
+            )
+        );
+
+        dispatch(new TinkoffTestJob(
+                '1M',
+                12,
+                'quick',
+                'simple'
+            )
+        );
+
+        dispatch(new TinkoffTestJob(
+                '1M',
+                12,
+                'quick',
+                'complex'
+            )
+        );
+
+        dispatch(new TinkoffTestJob(
+                '1M',
+                5,
+                'simple',
+                'simple'
+            )
+        );*/
+        /*
+                dispatch(new TinkoffTestJob(
+                        '1M',
+                        5,
+                        'simple',
+                        'complex'
+                    )
+                );
+
+                dispatch(new TinkoffTestJob(
+                        '1M',
+                        5,
+                        'quick',
+                        'simple'
+                    )
+                );
+
+                dispatch(new TinkoffTestJob(
+                        '1M',
+                        5,
+                        'quick',
+                        'complex'
+                    )
+                );*/
+
+        debug('Tinkoff job is starting');
 
     }
 
