@@ -59,7 +59,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/tinkoff/test', [\App\Http\Controllers\TinkoffController::class, 'test']);
 
-    Route::get('/tinkoff/volumeFiveMinute', [\App\Http\Controllers\TinkoffController::class, 'volumeFiveMinute']);
 
 
     Route::post(

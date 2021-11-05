@@ -48,8 +48,6 @@ class TinkoffController extends Controller
                     $message . "\n"
                 );
 
-                die();
-
             }
 
         }
