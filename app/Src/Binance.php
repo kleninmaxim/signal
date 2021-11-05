@@ -26,14 +26,14 @@ class Binance
     private $exchange;
 
     public $telegram_token;
-    public $chat_id;
+    public $telegram_user_id;
 
     public function __construct()
     {
         $this->exchange = new \ccxt\binance();
 
-        $this->telegram_token = config('api.telegram_token_2');
-        $this->chat_id = config('api.chat_id_2');
+        $this->telegram_token = config('api.telegram_token_binance');
+        $this->telegram_user_id = config('api.telegram_user_id');
     }
 
     public function loadCandles()

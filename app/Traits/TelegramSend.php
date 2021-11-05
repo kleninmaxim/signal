@@ -7,10 +7,10 @@ use App\Src\Telegram;
 trait TelegramSend
 {
 
-    private function sendTelegramMessage($message)
+    public function sendTelegramMessage($message)
     {
 
-        return (new Telegram($this->telegram_token, $this->chat_id))->send($message);
+        return (new Telegram($this->telegram_token, $this->telegram_user_id))->send($message);
 
     }
 

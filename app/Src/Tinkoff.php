@@ -24,15 +24,57 @@ class Tinkoff
     private $interval = 120;
 
     public $telegram_token;
-    public $chat_id;
+    public $telegram_user_id;
 
     public function __construct()
     {
 
         $this->client = new TIClient(config('api.tinkoff_token'), TISiteEnum::EXCHANGE);
 
-        $this->telegram_token = config('api.telegram_token_2');
-        $this->chat_id = config('api.chat_id_2');
+        $this->telegram_token = config('api.telegram_token_tinkoff');
+        $this->telegram_user_id = config('api.telegram_user_id');
+
+    }
+
+    public function getFiveMinuteCandle($figi, $interval = 3)
+    {
+
+        $from = new \DateTime();
+        $to = new \DateTime();
+
+        $from->sub(new \DateInterval('PT' . $interval . 'H'));
+
+        try {
+
+            usleep(200000); //0.2 секунды
+
+            $candles = array_reverse($this->client->getHistoryCandles($figi, $from, $to, TIIntervalEnum::MIN5));
+
+        } catch (TIException $e) {
+
+            $this->sendTelegramMessage('Can\'t get candles!!! FIGI is: ' . $figi);
+
+            return [];
+
+        }
+
+        foreach ($candles as $candle) {
+
+            $five_candles[] = [
+                'open' => $candle->getOpen(),
+                'close' => $candle->getClose(),
+                'high' => $candle->getHigh(),
+                'low' => $candle->getLow(),
+                'volume' => $candle->getVolume(),
+                'time_start' => Carbon::createFromTimestamp(
+                    $candle->getTime()->getTimestamp(),
+                    'Europe/Moscow'
+                )->toDateTimeString(),
+            ];
+
+        }
+
+        return $five_candles ?? [];
 
     }
 
@@ -195,14 +237,17 @@ class Tinkoff
 
             foreach ($candles as $candle) {
 
-                $hour_candles_pre['open'] = $candle->getOpen();
-                $hour_candles_pre['close'] = $candle->getClose();
-                $hour_candles_pre['high'] = $candle->getHigh();
-                $hour_candles_pre['low'] = $candle->getLow();
-                $hour_candles_pre['volume'] = $candle->getVolume();
-                $hour_candles_pre['time_start'] = Carbon::createFromTimestamp($candle->getTime()->getTimestamp(), 'Europe/Moscow')->toDateTimeString();
-
-                $hour_candles[] = $hour_candles_pre;
+                $hour_candles[] = [
+                    'open' => $candle->getOpen(),
+                    'close' => $candle->getClose(),
+                    'high' => $candle->getHigh(),
+                    'low' => $candle->getLow(),
+                    'volume' => $candle->getVolume(),
+                    'time_start' => Carbon::createFromTimestamp(
+                        $candle->getTime()->getTimestamp(),
+                        'Europe/Moscow'
+                    )->toDateTimeString(),
+                ];
 
             }
 
@@ -241,14 +286,17 @@ class Tinkoff
 
             foreach ($candles as $candle) {
 
-                $day_candles_pre['open'] = $candle->getOpen();
-                $day_candles_pre['close'] = $candle->getClose();
-                $day_candles_pre['high'] = $candle->getHigh();
-                $day_candles_pre['low'] = $candle->getLow();
-                $day_candles_pre['volume'] = $candle->getVolume();
-                $day_candles_pre['time_start'] = Carbon::createFromTimestamp($candle->getTime()->getTimestamp(), 'Europe/Moscow')->toDateTimeString();
-
-                $day_candles[] = $day_candles_pre;
+                $day_candles[] = [
+                    'open' => $candle->getOpen(),
+                    'close' => $candle->getClose(),
+                    'high' => $candle->getHigh(),
+                    'low' => $candle->getLow(),
+                    'volume' => $candle->getVolume(),
+                    'time_start' => Carbon::createFromTimestamp(
+                        $candle->getTime()->getTimestamp(),
+                        'Europe/Moscow'
+                    )->toDateTimeString(),
+                ];
 
             }
 

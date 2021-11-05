@@ -4,12 +4,12 @@ return [
 
     'tinkoff_token' => env('TINKOFF_TOKEN'),
 
-    'telegram_token_1' => env('TELEGRAM_TOKEN_1'),
+    'telegram_token_binance' => env('TELEGRAM_TOKEN_BINANCE'),
 
-    'telegram_token_2' => env('TELEGRAM_TOKEN_2'),
+    'telegram_token_tinkoff' => env('TELEGRAM_TOKEN_TINKOFF'),
 
-    'chat_id_1' => env('CHAT_ID_1'),
+    'telegram_token_rocket' => env('TELEGRAM_TOKEN_ROCKET'),
 
-    'chat_id_2' => env('CHAT_ID_2'),
+    'telegram_user_id' => env('TELEGRAM_USER_ID'),
 
 ];

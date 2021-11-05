@@ -24,10 +24,42 @@ class TinkoffController extends Controller
         $this->tinkoff = new Tinkoff();
     }
 
+    public function volumeFiveMinute()
+    {
+
+        $this->tinkoff->telegram_token = config('api.telegram_token_rocket');
+
+        $tickers = TinkoffTicker::where([
+            ['name', 'NOT REGEXP', '^[а-яА-Я]'],
+            ['type', 'Stock']
+        ])->get()->toArray();
+
+        foreach ($tickers as $ticker) {
+
+            $candles = $this->tinkoff->getFiveMinuteCandle($ticker['figi']);
+
+            $message = Capital::fiveMinuteVolume($candles);
+
+            if ($message) {
+
+                $this->tinkoff->sendTelegramMessage(
+                    'Strategy: five minute volume' . "\n" .
+                    'Ticker is: ' . $ticker['ticker'] . "\n" .
+                    $message . "\n"
+                );
+
+                die();
+
+            }
+
+        }
+
+    }
+
     public function test()
     {
 
-        dispatch(new TinkoffTestJob(
+        /*dispatch(new TinkoffTestJob(
                 '1d',
                 12,
                 'simple',
@@ -35,7 +67,7 @@ class TinkoffController extends Controller
             )
         );
 
-        /*dispatch(new TinkoffTestJob(
+        dispatch(new TinkoffTestJob(
                 '1d',
                 12,
                 'simple',
@@ -129,8 +161,8 @@ class TinkoffController extends Controller
                 'simple',
                 'simple'
             )
-        );*/
-        /*
+        );
+
                 dispatch(new TinkoffTestJob(
                         '1M',
                         5,
