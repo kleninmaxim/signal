@@ -28,6 +28,13 @@ class Math
 
     }
 
+    public static function round($number, $precision = 2)
+    {
+
+        return round($number, $precision);
+
+    }
+
     public static function annualApy($percentage, $minutes)
     {
 
@@ -44,14 +51,14 @@ class Math
 
     }
 
-    public static function staticAnalyse($sampling)
+    public static function statisticAnalyse($sampling)
     {
 
         //1 этап расчет всех основных коэффициентов
 
         $n = count($sampling);
 
-        if ($n == 0) return false;
+        if ($n <= 3) return false;
 
         $R = max($sampling) - min($sampling);
 
@@ -237,19 +244,19 @@ class Math
                 return $item <= $n? max($carry, $item): $carry;
             });
 
-            $delta[$a] = $student[$a][$near] * $standard_deviation / pow($n, 1 / 2);
+            $delta[$a] = self::round($student[$a][$near] * $standard_deviation / pow($n, 1 / 2));
 
         }
 
         return [
             'table' => $table,
-            'average' => $x_average,
-            'standard_deviation' => $standard_deviation,
-            'coefficient_of_variation' => $coefficient_of_variation,
-            'first_interval' => $first_interval,
-            'second_interval' => $second_interval,
-            'third_interval' => $third_interval,
-            'delta' => $delta ?? [],
+            'average' => self::round($x_average),
+            'standard_deviation' => self::round($standard_deviation),
+            //'coefficient_of_variation' => self::round($coefficient_of_variation),
+            //'first_interval' => self::round($first_interval),
+            //'second_interval' => self::round($second_interval),
+            //'third_interval' => self::round($third_interval),
+            'delta' => $delta['0.01'] ?? [],
         ];
 
     }
@@ -338,7 +345,10 @@ class Math
                 if ($i == 1) $cond = $item >= $table[$i]['min'];
                 else $cond = $item > $table[$i]['min'];
 
-                if ($cond && $item <= $table[$i]['max']) {
+                if (
+                    $cond &&
+                    ($item <= $table[$i]['max'] || bccomp($item, $table[$i]['max'], 2) == 0)
+                ) {
 
                     $m++;
 

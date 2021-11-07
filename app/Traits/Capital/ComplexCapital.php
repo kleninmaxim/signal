@@ -100,15 +100,11 @@ trait ComplexCapital
 
         foreach ($deals as $deal) {
 
-            $profit_percentage = Math::percentage($deal['buy'], $deal['sell']);
-
             $indicators[] = [
                 'minutes' => Math::diffInMinutes($deal['time_buy'], $deal['time_sell']),
-                'profit_percentage' => $profit_percentage,
+                'profit_percentage' => Math::percentage($deal['buy'], $deal['sell']),
                 'price_change' => Math::change($deal['buy'], $deal['sell'])
             ];
-
-            echo $profit_percentage . PHP_EOL;
 
         }
 

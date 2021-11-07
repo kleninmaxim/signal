@@ -172,8 +172,61 @@ class BinanceController extends Controller
             -4.89,
         ];
 
-        debug(Math::staticAnalyse($sampling));
+        $pairs = BinancePair::where('pair', 'ZRX/USDT')->get();
+        $pairs = BinancePair::all();
 
+        $output = [];
+
+        $sum = 0;
+        $sum_apy = 0;
+        $real_apy_sum = 0;
+        $day = 1;
+
+        $count = count($pairs);
+
+        foreach ($pairs as $pair) {
+
+            $result = Capital::simple(
+                Strategy::coraWaveSimple(
+                    $this->binance->getCandles($pair->pair, '1w'),
+                    12
+                )
+            );
+
+            if ($result['indicators'] != null) {
+
+                $sampling = array_column($result['indicators'], 'profit_percentage');
+
+                $output = array_merge($output, $sampling);
+
+                $sum += $result['final']['profit_percentage_sum'];
+                $sum_apy += $result['final']['profit_percentage_apy_sum'];
+                $day = max($day, $result['final']['days']);
+
+                if ($result['final']['days'] >= 365) {
+
+                    $real_apy = (pow(($result['final']['profit_percentage_sum'] / 100 + 1), 365 / $result['final']['days']) - 1) * 100;
+
+                } else {
+
+                    $real_apy = 0;
+
+                }
+
+                $real_apy_sum += $real_apy;
+
+            }
+
+        }
+
+        debug(Math::statisticAnalyse($output));
+        debug(
+            'I: ' . $sum / $count . "\n" .
+            'Days: ' . $day . "\n" .
+            'APY: ' . $sum / $count * 365 / $day . "\n" .
+            'Sum APY: ' . $sum_apy / $count . "\n" .
+            'Real APY: ' . $real_apy_sum / $count . "\n\n"
+        );
 
         /*        dispatch(new BinanceTestJob(
                         '1d',
