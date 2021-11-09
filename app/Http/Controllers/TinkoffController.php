@@ -34,7 +34,7 @@ class TinkoffController extends Controller
             ['name', 'NOT REGEXP', '^[а-яА-Я]'],
             ['type', 'Stock'],
             ['margin', true]
-        ])->get()->toArray();
+        ])->select(['figi', 'ticker'])->get()->toArray();
 
         foreach ($tickers as $ticker) {
 
