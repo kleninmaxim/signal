@@ -36,7 +36,7 @@ class Tinkoff
 
     }
 
-    public function getFiveMinuteCandle($figi, $interval = 3)
+    public function getFiveMinuteCandle($figi, $interval = 2)
     {
 
         $from = new \DateTime();

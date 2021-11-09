@@ -2,7 +2,7 @@
 
 namespace App\Traits\Strategy;
 
-trait FiveMinuteVolume
+trait FiveMinuteVolumeStrategy
 {
 
     public static function fiveMinuteVolume($candles, $increase = 10)

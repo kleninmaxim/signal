@@ -21,10 +21,10 @@ class Math
 
     }
 
-    public static function change($x, $y)
+    public static function change($x, $y, $precision = 6)
     {
 
-        return round($y / $x, 6);
+        return round($x / $y, $precision);
 
     }
 
@@ -77,25 +77,25 @@ class Math
 
         $standard_deviation = pow($sample_variance, 1 / 2);
 
-        $coefficient_of_variation = ($x_average != 0) ? $standard_deviation / $x_average : 0;
+        //$coefficient_of_variation = ($x_average != 0) ? $standard_deviation / $x_average : 0;
 
-        $the_central_moment_three = self::statisticCentralMoment($table, $x_average, $n, 3);
+        //$the_central_moment_three = self::statisticCentralMoment($table, $x_average, $n, 3);
 
-        $the_central_moment_two = self::statisticCentralMoment($table, $x_average, $n, 2);
+        //$the_central_moment_two = self::statisticCentralMoment($table, $x_average, $n, 2);
 
-        $the_central_moment_four = self::statisticCentralMoment($table, $x_average, $n, 4);
+        //$the_central_moment_four = self::statisticCentralMoment($table, $x_average, $n, 4);
 
-        $the_coefficient_of_asymmetry = $the_central_moment_three / pow($the_central_moment_two, 3 / 2);
+        //$the_coefficient_of_asymmetry = $the_central_moment_three / pow($the_central_moment_two, 3 / 2);
 
-        $estimation_of_the_excess = $the_central_moment_four / pow($the_central_moment_two, 2) - 3;
+        //$estimation_of_the_excess = $the_central_moment_four / pow($the_central_moment_two, 2) - 3;
 
         //2 этап Предварительная проверка на нормальность (68, 95, 100)
 
-        $first_interval = self::statisticPercantageInSampling($sampling, $n, $x_average, $standard_deviation);
+        //$first_interval = self::statisticPercantageInSampling($sampling, $n, $x_average, $standard_deviation);
 
-        $second_interval = self::statisticPercantageInSampling($sampling, $n, $x_average, 2 * $standard_deviation);
+        //$second_interval = self::statisticPercantageInSampling($sampling, $n, $x_average, 2 * $standard_deviation);
 
-        $third_interval = self::statisticPercantageInSampling($sampling, $n, $x_average, 3 * $standard_deviation);
+        //$third_interval = self::statisticPercantageInSampling($sampling, $n, $x_average, 3 * $standard_deviation);
 
         //3 этап Интервальное оценивание
 
@@ -328,6 +328,8 @@ class Math
 
         $min = min($sampling);
 
+        $max = max($sampling);
+
         $sum_h = 0;
 
         $sum_m = 0;
@@ -347,7 +349,7 @@ class Math
 
                 if (
                     $cond &&
-                    ($item <= $table[$i]['max'] || bccomp($item, $table[$i]['max'], 2) == 0)
+                    ($item <= $table[$i]['max'] || ($i == $K && $max == $item))
                 ) {
 
                     $m++;

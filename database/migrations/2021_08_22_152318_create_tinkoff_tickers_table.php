@@ -20,6 +20,7 @@ class CreateTinkoffTickersTable extends Migration
             $table->string('name')->unique();
             $table->string('type');
             $table->boolean('notify')->default(true);
+            $table->boolean('margin')->default(false);
             $table->boolean('short')->default(false);
         });
     }

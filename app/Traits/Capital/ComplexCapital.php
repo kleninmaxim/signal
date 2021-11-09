@@ -103,7 +103,7 @@ trait ComplexCapital
             $indicators[] = [
                 'minutes' => Math::diffInMinutes($deal['time_buy'], $deal['time_sell']),
                 'profit_percentage' => Math::percentage($deal['buy'], $deal['sell']),
-                'price_change' => Math::change($deal['buy'], $deal['sell'])
+                'price_change' => Math::change($deal['sell'], $deal['buy'])
             ];
 
         }
