@@ -45,9 +45,9 @@ class TinkoffController extends Controller
             if ($message) {
 
                 $this->tinkoff->sendTelegramMessage(
-                    'Strategy: five minute volume' . '\n' .
-                    'Ticker is: ' . $ticker['ticker'] . '\n' .
-                    $message . '\n'
+                    'Strategy: five minute volume' . "\n" .
+                    'Ticker is: ' . $ticker['ticker'] . "\n" .
+                    $message . "\n"
                 );
 
             }
@@ -111,11 +111,11 @@ class TinkoffController extends Controller
         debug(Math::statisticAnalyse($output));
 
         debug(
-            'I: ' . $sum / $count . '\n' .
-            'Days: ' . $day . '\n' .
-            'APY: ' . $sum / $count * 365 / $day . '\n' .
-            'Sum APY: ' . $sum_apy / $count . '\n' .
-            'Real APY: ' . $real_apy_sum / $count . '\n\n'
+            'I: ' . $sum / $count . "\n" .
+            'Days: ' . $day . "\n" .
+            'APY: ' . $sum / $count * 365 / $day . "\n" .
+            'Sum APY: ' . $sum_apy / $count . "\n" .
+            'Real APY: ' . $real_apy_sum / $count . "\n\n"
         );
 
         /*dispatch(new TinkoffTestJob(
