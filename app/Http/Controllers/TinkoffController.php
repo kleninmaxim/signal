@@ -34,15 +34,23 @@ class TinkoffController extends Controller
             ['name', 'NOT REGEXP', '^[а-яА-Я]'],
             ['type', 'Stock'],
             ['margin', true]
-        ])->select(['figi', 'ticker'])->get()->toArray();
+        ])->select(['figi', 'ticker'])->take(50)->get()->toArray();
 
         foreach ($tickers as $ticker) {
 
-            $candles = $this->tinkoff->getFiveMinuteCandle($ticker['figi']);
+            $candles = $this->tinkoff->getFiveMinuteCandle($ticker['figi'], 1);
 
-            $message = Strategy::fiveMinuteVolume($candles);
+            $message = Strategy::fiveMinuteVolume($candles, 4);
 
             if ($message) {
+
+                $this->tinkoff->sendTelegramMessage(
+                    'Strategy: five minute volume' . "\n" .
+                    'Ticker is: ' . $ticker['ticker'] . "\n" .
+                    $message . "\n"
+                );
+
+                $this->tinkoff->telegram_user_id = config('api.telegram_dima_id');
 
                 $this->tinkoff->sendTelegramMessage(
                     'Strategy: five minute volume' . "\n" .

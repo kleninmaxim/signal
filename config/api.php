@@ -12,4 +12,6 @@ return [
 
     'telegram_user_id' => env('TELEGRAM_USER_ID'),
 
+    'telegram_dima_id' => env('TELEGRAM_DIMA_ID'),
+
 ];

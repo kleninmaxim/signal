@@ -18,9 +18,9 @@ trait FiveMinuteVolumeStrategy
 
             $volume_average = array_sum(array_column($candles, 'volume')) / count($candles);
 
-            if ($first['volume'] >= $increase * $volume_average) return 'volume increases right now';
+            if ($first['volume'] >= $increase * $volume_average) return 'volume increases right now more ' . $increase;
 
-            if ($second['volume'] >= $increase * $volume_average) return 'volume increases now';
+            if ($second['volume'] >= $increase * $volume_average) return 'volume increases now more ' . $increase;
 
         }
 

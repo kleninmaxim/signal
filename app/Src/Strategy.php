@@ -13,7 +13,7 @@ use App\Traits\Strategy\MovingAverageStrategy;
 class Strategy
 {
 
-    use CoraWaveStrategy, MovingAverageStrategy, FiveMinuteVolumeStrategy, FinalStrategy;
+    use CoraWaveStrategy, MovingAverageStrategy, FiveMinuteVolumeStrategy;
 
     /*
      * INPUT: Все свечи приходят в таком массиве,
