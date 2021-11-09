@@ -38,9 +38,11 @@ class TinkoffController extends Controller
 
         foreach ($tickers as $ticker) {
 
-            $candles = $this->tinkoff->getFiveMinuteCandle($ticker['figi'], 1);
+            $interval = 1;
 
-            $message = Strategy::fiveMinuteVolume($candles, 4);
+            $candles = $this->tinkoff->getFiveMinuteCandle($ticker['figi'], $interval);
+
+            $message = Strategy::fiveMinuteVolume($candles, $interval, 4);
 
             if ($message) {
 
