@@ -34,31 +34,37 @@ class TinkoffController extends Controller
             ['name', 'NOT REGEXP', '^[а-яА-Я]'],
             ['type', 'Stock'],
             ['margin', true]
-        ])->select(['figi', 'ticker'])->take(50)->get()->toArray();
+        ])->select(['figi', 'ticker'])->get()->toArray();
+
+        $interval = 1;
+
+        $increase = 4;
 
         foreach ($tickers as $ticker) {
 
-            $interval = 1;
-
             $candles = $this->tinkoff->getFiveMinuteCandle($ticker['figi'], $interval);
 
-            $message = Strategy::fiveMinuteVolume($candles, $interval, 4);
+            if (count($candles) >= $interval * 60 / 5) {
 
-            if ($message) {
+                $message = Strategy::fiveMinuteVolume($candles, $interval, $increase);
 
-                $this->tinkoff->sendTelegramMessage(
-                    'Strategy: five minute volume' . "\n" .
-                    'Ticker is: ' . $ticker['ticker'] . "\n" .
-                    $message . "\n"
-                );
+                if ($message) {
 
-                $this->tinkoff->telegram_user_id = config('api.telegram_dima_id');
+                    $this->tinkoff->sendTelegramMessage(
+                        'Strategy: five minute volume' . "\n" .
+                        'Ticker is: ' . $ticker['ticker'] . "\n" .
+                        $message . "\n",
+                        config('api.telegram_user_id')
+                    );
 
-                $this->tinkoff->sendTelegramMessage(
-                    'Strategy: five minute volume' . "\n" .
-                    'Ticker is: ' . $ticker['ticker'] . "\n" .
-                    $message . "\n"
-                );
+                    $this->tinkoff->sendTelegramMessage(
+                        'Strategy: five minute volume' . "\n" .
+                        'Ticker is: ' . $ticker['ticker'] . "\n" .
+                        $message . "\n",
+                        config('api.telegram_dima_id')
+                    );
+
+                }
 
             }
 

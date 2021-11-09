@@ -26,6 +26,11 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
 
+        $schedule->call('\App\Http\Controllers\TinkoffController@volumeFiveMinute')
+            ->weekdays()
+            ->everyFiveMinutes()
+            ->unlessBetween('00:00', '8:00');
+
 /*        $schedule->call('\App\Http\Controllers\TinkoffController@loadCandles')
             ->everyMinute()
             ->appendOutputTo(storage_path('logs/record_tinkoff_ticker.log'));*/
