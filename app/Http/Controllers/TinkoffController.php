@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\TinkoffTestJob;
+use App\Models\TinkoffCloseDayTime;
 use App\Src\Math;
 use App\Traits\Old\TinkoffControllerOld;
 use Illuminate\Http\Request;
@@ -12,6 +13,7 @@ use App\Src\Strategy;
 use App\Src\Tinkoff;
 
 use App\Models\TinkoffTicker;
+use jamesRUS52\TinkoffInvest\TIIntervalEnum;
 
 class TinkoffController extends Controller
 {
@@ -23,6 +25,91 @@ class TinkoffController extends Controller
     public function __construct()
     {
         $this->tinkoff = new Tinkoff();
+    }
+
+    public function saveDayCloseCandleTime()
+    {
+
+        $tickers = TinkoffTicker::where([
+            ['name', 'NOT REGEXP', '^[а-яА-Я]'],
+            ['type', 'Stock'],
+            ['margin', true]
+        ])->select(['id', 'figi', 'ticker'])->get()->toArray();
+
+        foreach ($tickers as $ticker) {
+
+            $candles = $this->tinkoff->getCandlesAPI($ticker['figi'], TIIntervalEnum::DAY,2, 10);
+
+            if (count($candles) >= 2) {
+
+                $first = array_shift($candles);
+
+                TinkoffCloseDayTime::create([
+                    'tinkoff_ticker_id' => $ticker['id'],
+                    'open' => $first['open'],
+                    'close' => $first['close'],
+                    'high' => $first['high'],
+                    'low' => $first['low'],
+                    'volume' => $first['volume'],
+                    'time_start' => $first['time_start']
+                ]);
+
+            } else {
+
+                $this->tinkoff->sendTelegramMessage(
+                    'Can\'t get candles for ticker is: ' . $ticker['ticker'] . "\n" .
+                    config('api.telegram_user_id')
+                );
+
+            }
+
+        }
+
+    }
+
+    public function commonStrategy()
+    {
+
+        $this->tinkoff->telegram_token = config('api.telegram_token_rocket');
+
+        $tickers = TinkoffTicker::where([
+            ['name', 'NOT REGEXP', '^[а-яА-Я]'],
+            ['type', 'Stock'],
+            ['margin', true]
+        ])->select(['figi', 'ticker'])->get()->toArray();
+
+        $interval = 1;
+
+        foreach ($tickers as $ticker) {
+
+            $candles = $this->tinkoff->getFiveMinuteCandle($ticker['figi'], $interval);
+
+            if (count($candles) >= $interval * 60 / 5) {
+
+                $message = Strategy::fiveMinuteChange($candles);
+
+                if ($message) {
+
+                    $this->tinkoff->sendTelegramMessage(
+                        'Strategy: five change price' . "\n" .
+                        'Ticker is: ' . $ticker['ticker'] . "\n" .
+                        $message . "\n",
+                        config('api.telegram_user_id')
+                    );
+
+                    $this->tinkoff->sendTelegramMessage(
+                        'Strategy: five change price' . "\n" .
+                        'Ticker is: ' . $ticker['ticker'] . "\n" .
+                        $message . "\n",
+                        config('api.telegram_dima_id')
+                    );
+
+                }
+
+            }
+
+        }
+
     }
 
     public function volumeFiveMinute()

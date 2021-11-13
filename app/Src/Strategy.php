@@ -7,13 +7,14 @@ use App\Models\StrategyDefaultOption;
 
 use App\Traits\Strategy\CoraWaveStrategy;
 use App\Traits\Strategy\FinalStrategy;
+use App\Traits\Strategy\FiveMinuteChangeStrategy;
 use App\Traits\Strategy\FiveMinuteVolumeStrategy;
 use App\Traits\Strategy\MovingAverageStrategy;
 
 class Strategy
 {
 
-    use CoraWaveStrategy, MovingAverageStrategy, FiveMinuteVolumeStrategy;
+    use CoraWaveStrategy, MovingAverageStrategy, FiveMinuteVolumeStrategy, FiveMinuteChangeStrategy;
 
     /*
      * INPUT: Все свечи приходят в таком массиве,

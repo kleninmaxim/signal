@@ -60,6 +60,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/tinkoff/test', [\App\Http\Controllers\TinkoffController::class, 'test']);
 
+    Route::get('/tinkoff/saveDayCloseCandleTime', [\App\Http\Controllers\TinkoffController::class, 'saveDayCloseCandleTime']);
+
 
 
     Route::post(

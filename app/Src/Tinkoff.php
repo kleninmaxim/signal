@@ -257,7 +257,7 @@ class Tinkoff
 
     }
 
-    private function getCandlesAPI($figi, $day = TIIntervalEnum::DAY, $interval = null)
+    public function getCandlesAPI($figi, $day = TIIntervalEnum::DAY, $interval = null, $number = 365)
     {
 
         $interval = $interval ?? $this->interval;
@@ -267,8 +267,8 @@ class Tinkoff
             $from = new \DateTime();
             $to = new \DateTime();
 
-            $from->sub(new \DateInterval('P' . 365 * $i . 'D'));
-            $to->sub(new \DateInterval('P' . 365 * ($i - 1) . 'D'));
+            $from->sub(new \DateInterval('P' . $number * $i . 'D'));
+            $to->sub(new \DateInterval('P' . $number * ($i - 1) . 'D'));
 
             try {
 

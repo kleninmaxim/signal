@@ -26,10 +26,14 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
 
-        $schedule->call('\App\Http\Controllers\TinkoffController@volumeFiveMinute')
+        $schedule->call('\App\Http\Controllers\TinkoffController@saveDayCloseCandleTime')
+            ->weekdays()
+            ->dailyAt('5:00');
+
+/*        $schedule->call('\App\Http\Controllers\TinkoffController@volumeFiveMinute')
             ->weekdays()
             ->everyFiveMinutes()
-            ->unlessBetween('00:00', '8:00');
+            ->unlessBetween('00:00', '8:00');*/
 
 /*        $schedule->call('\App\Http\Controllers\TinkoffController@loadCandles')
             ->everyMinute()
