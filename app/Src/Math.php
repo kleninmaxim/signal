@@ -349,7 +349,7 @@ class Math
 
                 if (
                     $cond &&
-                    ($item <= $table[$i]['max'] || ($i == $K && $max == $item))
+                    ($item <= $table[$i]['max'] || bccomp($item, $table[$i]['max'], 2) == 0 || ($i == $K && $max == $item))
                 ) {
 
                     $m++;
