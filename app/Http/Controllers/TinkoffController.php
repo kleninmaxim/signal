@@ -97,12 +97,12 @@ class TinkoffController extends Controller
                         config('api.telegram_user_id')
                     );
 
-                    $this->tinkoff->sendTelegramMessage(
+/*                    $this->tinkoff->sendTelegramMessage(
                         'Strategy: five change price' . "\n" .
                         'Ticker is: ' . $ticker['ticker'] . "\n" .
                         $message . "\n",
                         config('api.telegram_dima_id')
-                    );
+                    );*/
 
                 }
 
