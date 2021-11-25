@@ -51,6 +51,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/binance/testFinalStrategy', [\App\Http\Controllers\BinanceController::class, 'testFinalStrategy']);
 
+    Route::get('/binance/testFivePercentageChangeStrategy', [\App\Http\Controllers\BinanceController::class, 'testFivePercentageChangeStrategy']);
+
 
     Route::get('/tinkoff/coraWave', [\App\Http\Controllers\TinkoffController::class, 'coraWave']);
 
@@ -61,6 +63,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/tinkoff/test', [\App\Http\Controllers\TinkoffController::class, 'test']);
 
     Route::get('/tinkoff/saveDayCloseCandleTime', [\App\Http\Controllers\TinkoffController::class, 'saveDayCloseCandleTime']);
+
+    Route::get('/tinkoff/commonStrategy', [\App\Http\Controllers\TinkoffController::class, 'commonStrategy']);
 
 
 
