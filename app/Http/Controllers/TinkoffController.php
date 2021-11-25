@@ -111,14 +111,14 @@ class TinkoffController extends Controller
 
                 $first = array_shift($candles);
 
-                $price_day_change_percantage = Math::round(($first['close'] - $day_closed) / $day_closed * 100);
+                $price_day_change_percantage = Math::round(($first['close'] - $day_closed['close']) / $day_closed['close'] * 100);
 
                 if ($price_day_change_percantage >= 5) {
 
                     $this->tinkoff->sendTelegramMessage(
                         'Strategy: day close change price' . "\n" .
                         'Ticker is: ' . $ticker['ticker'] . "\n" .
-                        'five minute change right now more ' . "\n" .
+                        'Now close and Prev Close: ' . $first['close'] . '% ' . $day_closed['close'] . '%' . "\n" .
                         'change price 1 day: ' . $price_day_change_percantage . '%' . "\n",
                         config('api.telegram_user_id')
                     );

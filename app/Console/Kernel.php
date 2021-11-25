@@ -30,6 +30,11 @@ class Kernel extends ConsoleKernel
             ->weekdays()
             ->dailyAt('5:00');
 
+        $schedule->call('\App\Http\Controllers\TinkoffController@commonStrategy')
+            ->weekdays()
+            ->everyFiveMinutes()
+            ->unlessBetween('00:00', '8:00');
+
 /*        $schedule->call('\App\Http\Controllers\TinkoffController@volumeFiveMinute')
             ->weekdays()
             ->everyFiveMinutes()
