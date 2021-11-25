@@ -82,7 +82,7 @@ class TinkoffController extends Controller
 
         foreach ($tickers as $ticker) {
 
-            $day_closed = TinkoffCloseDayTime::where('id', $ticker['id'])
+            $day_closed = TinkoffCloseDayTime::where('tinkoff_ticker_id', $ticker['id'])
                 ->orderBy('time_start', 'desc')->select(['close'])->first()->toArray();
 
             $candles = $this->tinkoff->getFiveMinuteCandle($ticker['figi'], $interval);
