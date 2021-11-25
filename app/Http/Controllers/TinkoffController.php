@@ -39,6 +39,8 @@ class TinkoffController extends Controller
 
         foreach ($tickers as $ticker) {
 
+            usleep(200000); //0.2 секунды
+
             $candles = $this->tinkoff->getCandlesAPI($ticker['figi'], TIIntervalEnum::DAY,2, 10);
 
             if (count($candles) >= 2) {
@@ -85,7 +87,9 @@ class TinkoffController extends Controller
         foreach ($tickers as $ticker) {
 
             $day_closed = TinkoffCloseDayTime::where('tinkoff_ticker_id', $ticker['id'])
-                ->orderBy('time_start', 'desc')->select(['close'])->first();
+                ->orderBy('time_start', 'desc')->select(['close'])->first()->toArray();
+
+            debug($day_closed, true);
 
             if ($day_closed != null) {
 
@@ -119,7 +123,7 @@ class TinkoffController extends Controller
 
                     $price_day_change_percantage = Math::round(($first['close'] - $day_closed['close']) / $day_closed['close'] * 100);
 
-                    if ($price_day_change_percantage >= 5) {
+                    if ($price_day_change_percantage >= 0.5) {
 
                         $this->tinkoff->sendTelegramMessage(
                             'Strategy: day close change price' . "\n" .
@@ -141,13 +145,6 @@ class TinkoffController extends Controller
                     print_r($message);
 
                 }
-
-            } else {
-
-                $this->tinkoff->sendTelegramMessage(
-                    'Null object for' . $ticker['ticker'] . "\n",
-                    config('api.telegram_user_id')
-                );
 
             }
 
