@@ -33,7 +33,8 @@ class TinkoffController extends Controller
         $tickers = TinkoffTicker::where([
             ['name', 'NOT REGEXP', '^[а-яА-Я]'],
             ['type', 'Stock'],
-            ['margin', true]
+            ['margin', true],
+            ['notify', true]
         ])->select(['id', 'figi', 'ticker'])->get()->toArray();
 
         foreach ($tickers as $ticker) {
@@ -75,7 +76,8 @@ class TinkoffController extends Controller
         $tickers = TinkoffTicker::where([
             ['name', 'NOT REGEXP', '^[а-яА-Я]'],
             ['type', 'Stock'],
-            ['margin', true]
+            ['margin', true],
+            ['notify', true]
         ])->select(['id', 'figi', 'ticker'])->get()->toArray();
 
         $interval = 1;
