@@ -85,56 +85,69 @@ class TinkoffController extends Controller
         foreach ($tickers as $ticker) {
 
             $day_closed = TinkoffCloseDayTime::where('tinkoff_ticker_id', $ticker['id'])
-                ->orderBy('time_start', 'desc')->select(['close'])->first()->toArray();
+                ->orderBy('time_start', 'desc')->select(['close'])->first();
 
-            $candles = $this->tinkoff->getFiveMinuteCandle($ticker['figi'], $interval);
+            if ($day_closed != null) {
 
-            if (count($candles) >= $interval * 60 / 5) {
+                $day_closed->toArray();
 
-                $message = Strategy::fiveMinuteChange($candles);
+                $candles = $this->tinkoff->getFiveMinuteCandle($ticker['figi'], $interval);
 
-                if ($message) {
+                if (count($candles) >= $interval * 60 / 5) {
 
-                    $this->tinkoff->sendTelegramMessage(
-                        'Strategy: five minute change price' . "\n" .
-                        'Ticker is: ' . $ticker['ticker'] . "\n" .
-                        $message . "\n",
-                        config('api.telegram_user_id')
-                    );
+                    $message = Strategy::fiveMinuteChange($candles);
 
-/*                    $this->tinkoff->sendTelegramMessage(
-                        'Strategy: five minute change price' . "\n" .
-                        'Ticker is: ' . $ticker['ticker'] . "\n" .
-                        $message . "\n",
-                        config('api.telegram_dima_id')
-                    );*/
+                    if ($message) {
+
+                        $this->tinkoff->sendTelegramMessage(
+                            'Strategy: five minute change price' . "\n" .
+                            'Ticker is: ' . $ticker['ticker'] . "\n" .
+                            $message . "\n",
+                            config('api.telegram_user_id')
+                        );
+
+                        /*                    $this->tinkoff->sendTelegramMessage(
+                                                'Strategy: five minute change price' . "\n" .
+                                                'Ticker is: ' . $ticker['ticker'] . "\n" .
+                                                $message . "\n",
+                                                config('api.telegram_dima_id')
+                                            );*/
+
+                    }
+
+                    $first = array_shift($candles);
+
+                    $price_day_change_percantage = Math::round(($first['close'] - $day_closed['close']) / $day_closed['close'] * 100);
+
+                    if ($price_day_change_percantage >= 5) {
+
+                        $this->tinkoff->sendTelegramMessage(
+                            'Strategy: day close change price' . "\n" .
+                            'Ticker is: ' . $ticker['ticker'] . "\n" .
+                            'Now close and Prev Close: ' . $first['close'] . ' ' . $day_closed['close'] . "\n" .
+                            'change price 1 day: ' . $price_day_change_percantage . '%' . "\n",
+                            config('api.telegram_user_id')
+                        );
+
+                        /*                    $this->tinkoff->sendTelegramMessage(
+                                                'Strategy: day close change price' . "\n" .
+                                                'Ticker is: ' . $ticker['ticker'] . "\n" .
+                                                $message . "\n",
+                                                config('api.telegram_dima_id')
+                                            );*/
+
+                    }
+
+                    print_r($message);
 
                 }
 
-                $first = array_shift($candles);
+            } else {
 
-                $price_day_change_percantage = Math::round(($first['close'] - $day_closed['close']) / $day_closed['close'] * 100);
-
-                if ($price_day_change_percantage >= 5) {
-
-                    $this->tinkoff->sendTelegramMessage(
-                        'Strategy: day close change price' . "\n" .
-                        'Ticker is: ' . $ticker['ticker'] . "\n" .
-                        'Now close and Prev Close: ' . $first['close'] . ' ' . $day_closed['close'] . "\n" .
-                        'change price 1 day: ' . $price_day_change_percantage . '%' . "\n",
-                        config('api.telegram_user_id')
-                    );
-
-/*                    $this->tinkoff->sendTelegramMessage(
-                        'Strategy: day close change price' . "\n" .
-                        'Ticker is: ' . $ticker['ticker'] . "\n" .
-                        $message . "\n",
-                        config('api.telegram_dima_id')
-                    );*/
-
-                }
-
-                print_r($message);
+                $this->tinkoff->sendTelegramMessage(
+                    'Null object for' . $ticker['ticker'] . "\n",
+                    config('api.telegram_user_id')
+                );
 
             }
 
