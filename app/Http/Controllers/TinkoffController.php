@@ -120,7 +120,7 @@ class TinkoffController extends Controller
                     $this->tinkoff->sendTelegramMessage(
                         'Strategy: day close change price' . "\n" .
                         'Ticker is: ' . $ticker['ticker'] . "\n" .
-                        'Now close and Prev Close: ' . $first['close'] . '% ' . $day_closed['close'] . '%' . "\n" .
+                        'Now close and Prev Close: ' . $first['close'] . ' ' . $day_closed['close'] . "\n" .
                         'change price 1 day: ' . $price_day_change_percantage . '%' . "\n",
                         config('api.telegram_user_id')
                     );
