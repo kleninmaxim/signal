@@ -20,6 +20,141 @@ class BinanceController extends Controller
         $this->binance = new Binance();
     }
 
+    public function processTokens()
+    {
+
+        $pairs = BinancePair::where('id', '<=', 300)->get()->toArray();
+
+        $time_start = (time() - 30 * 24 * 60 * 60 * 12 * 5) * 1000;
+
+        foreach ($pairs as $pair)
+        {
+
+            $pair_str = str_replace('/', '', $pair['pair']);
+
+            $candles = $this->binance->getCandlesApiFormat($pair_str, '1M', $time_start);
+
+            $first = array_shift($candles)['close'];
+            $last = array_pop($candles)['close'];
+
+            debug($pair['pair'] . ' | ' . Math::percentage($first, $last));
+
+
+        }
+
+    }
+
+    public function testFivePercentageChangeStrategy()
+    {
+
+        $pairs = BinancePair::where('id', '<=', 300)->get()->toArray();
+
+        $time_start = (time() - 30 * 24 * 60 * 60 * 2) * 1000;
+
+        $pers = [1, 2, 3, 4];
+
+        foreach ($pairs as $pair) {
+
+            //$pair_str = str_replace('/', '', $pair['pair']);
+
+            $candles = $this->binance->getCandles($pair['pair'], '1d');
+            //$candles = $this->binance->getCandlesApiFormat($pair_str, '1d', $time_start);
+
+            $candles = array_filter($candles, function ($candle) {
+                return $candle['time_start'] <= '2019-03-18 00:00:00' && $candle['time_start'] >= '2017-12-18 00:00:00';
+            });
+
+            foreach ($pers as $per) {
+
+                $data = Strategy::FivePercentage(
+                    $candles,
+                    $per
+                );
+
+                if (!empty($data)) {
+
+/*                    $n = 0;
+                    $p = 0;
+
+                    $i = 0;
+                    $j = 0;
+
+                    $sequence_of_negative = [];
+
+                    $sequence_of_positive = [];
+
+                    $negative = [];*/
+
+                    $sum = 1;
+
+                    foreach ($data as $datum) {
+
+/*                        if ($datum <= 0) {
+
+                            $i++;
+
+                            $n++;
+
+                            if ($j != 0) $sequence_of_positive[] = $j;
+
+                            $j = 0;
+
+                            $negative[] = $datum;
+
+                        } else {
+
+                            if ($i != 0) $sequence_of_negative[] = $i;
+
+                            $j++;
+
+                            $p++;
+
+                            $i = 0;
+                        }*/
+
+                        $sum *= (1 + $datum / 100);
+
+                    }
+
+/*                    if ($j != 0) $sequence_of_positive[] = $j;
+
+                    if ($i != 0) $sequence_of_negative[] = $i;
+
+                    $sequence_of_negative = array_count_values($sequence_of_negative);
+                    $sequence_of_positive = array_count_values($sequence_of_positive);
+
+                    ksort($sequence_of_negative);
+                    ksort($sequence_of_positive);
+                    sort($negative);
+                    sort($data);*/
+
+                    debug(
+                        $pair['pair'] . ' | ' . $per . ' | ' . Math::round(($sum - 1) * 100)
+                    );
+
+                    //debug($data);
+
+                    //debug($sequence_of_negative);
+                    //debug($sequence_of_positive);
+                    //debug(Math::change($p, $p + $n, 4) * 100);
+                    //debug($p);
+                    //debug($n);
+
+                    //debug(Math::statisticAnalyse($data));
+
+                    //debug($negative);
+
+                }
+
+                //debug($data);
+                //debug($date);
+
+            }
+
+        }
+
+    }
+
     public function testFinalStrategy()
     {
         // добавь медиану, квантиль, мода

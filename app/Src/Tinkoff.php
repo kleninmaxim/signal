@@ -81,7 +81,7 @@ class Tinkoff
     public function getCandles($ticker, $timeframe, $desc = true)
     {
         $skip = 0;
-        $take = 50000;
+        $take = 12 * 5;
 
         if ($desc) {
 

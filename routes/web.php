@@ -40,6 +40,8 @@ Route::get('/tinkoff/tickers', [\App\Http\Controllers\TinkoffController::class, 
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
+    Route::get('/percentage', [\App\Http\Controllers\PercentageController::class, 'percentage']);
+
 
     Route::get('/binance/loadCandles', [\App\Http\Controllers\BinanceController::class, 'loadCandles']);
 
@@ -53,6 +55,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/binance/testFivePercentageChangeStrategy', [\App\Http\Controllers\BinanceController::class, 'testFivePercentageChangeStrategy']);
 
+    Route::get('/binance/processTokens', [\App\Http\Controllers\BinanceController::class, 'processTokens']);
+
 
     Route::get('/tinkoff/coraWave', [\App\Http\Controllers\TinkoffController::class, 'coraWave']);
 
@@ -65,6 +69,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/tinkoff/saveDayCloseCandleTime', [\App\Http\Controllers\TinkoffController::class, 'saveDayCloseCandleTime']);
 
     Route::get('/tinkoff/commonStrategy', [\App\Http\Controllers\TinkoffController::class, 'commonStrategy']);
+
+    Route::get('/tinkoff/topCompany', [\App\Http\Controllers\TinkoffController::class, 'topCompany']);
+
+    Route::get('/tinkoff/processShares', [\App\Http\Controllers\TinkoffController::class, 'processShares']);
 
 
 

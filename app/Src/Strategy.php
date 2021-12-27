@@ -9,12 +9,18 @@ use App\Traits\Strategy\CoraWaveStrategy;
 use App\Traits\Strategy\FinalStrategy;
 use App\Traits\Strategy\FiveMinuteChangeStrategy;
 use App\Traits\Strategy\FiveMinuteVolumeStrategy;
+use App\Traits\Strategy\FivePercentageStrategy;
 use App\Traits\Strategy\MovingAverageStrategy;
 
 class Strategy
 {
 
-    use CoraWaveStrategy, MovingAverageStrategy, FiveMinuteVolumeStrategy, FiveMinuteChangeStrategy, FinalStrategy;
+    use CoraWaveStrategy,
+        MovingAverageStrategy,
+        FiveMinuteVolumeStrategy,
+        FiveMinuteChangeStrategy,
+        FinalStrategy,
+        FivePercentageStrategy;
 
     /*
      * INPUT: Все свечи приходят в таком массиве,

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\TinkoffTestJob;
 use App\Models\TinkoffCloseDayTime;
+use App\Models\TinkoffMonthCandle;
 use App\Src\Math;
 use App\Traits\Old\TinkoffControllerOld;
 use Illuminate\Http\Request;
@@ -87,9 +88,7 @@ class TinkoffController extends Controller
         foreach ($tickers as $ticker) {
 
             $day_closed = TinkoffCloseDayTime::where('tinkoff_ticker_id', $ticker['id'])
-                ->orderBy('time_start', 'desc')->select(['close'])->first()->toArray();
-
-            debug($day_closed, true);
+                ->orderBy('time_start', 'desc')->select(['close'])->first();
 
             if ($day_closed != null) {
 
@@ -147,6 +146,175 @@ class TinkoffController extends Controller
                 }
 
             }
+
+        }
+
+    }
+
+    public function topCompany()
+    {
+
+        $not_in = [
+            'ACGBY',
+            'ASML',
+            'BHP',
+            'BRK.A',
+            'CDI',
+            'CICHY',
+            'HESAF',
+            'KYCCF',
+            'LVMUY',
+            'MPNGF',
+            'NSRGY',
+            'NVO',
+            'OR',
+            'PNGAY',
+            'PRX',
+            'RHHBY',
+            'RYDAF',
+            'SE',
+            'SIEGY',
+            'TCEHY',
+            'TD',
+        ];
+
+        $lists = [
+            'AAPL',
+            'ABBV',
+            'ABT',
+            'ACN',
+            'ADBE',
+            'AMD',
+            'AMZN',
+            'AVGO',
+            'AZN',
+            'BABA',
+            'BAC',
+            'BLK',
+            'CMCSA',
+            'COST',
+            'CRM',
+            'CSCO',
+            'CVX',
+            'DHR',
+            'DIS',
+            'FB',
+            'GOOG',
+            'HD',
+            'HON',
+            'INTC',
+            'INTU',
+            'JNJ',
+            'JPM',
+            'KO',
+            'LIN',
+            'LLY',
+            'LOW',
+            'MA',
+            'MCD',
+            'MDT',
+            'MRK',
+            'MS',
+            'MSFT',
+            'NEE',
+            'NFLX',
+            'NKE',
+            'NVDA',
+            'NVS',
+            'ORCL',
+            'PEP',
+            'PFE',
+            'PG',
+            'PM',
+            'PTR',
+            'PYPL',
+            'QCOM',
+            'RY',
+            'SAP',
+            'SCHW',
+            'SHOP',
+            'SONY',
+            'T',
+            'TCS',
+            'TM',
+            'TMO',
+            'TMUS',
+            'TSLA',
+            'TSM',
+            'TXN',
+            'UNH',
+            'UNP',
+            'UPS',
+            'V',
+            'VZ',
+            'WFC',
+            'WMT',
+            'XOM'
+        ];
+
+        $lists = array_slice($lists,0,20);
+
+        $pers = [0.25, 0.5, 0.75, 1, 1.25, 1.5];
+
+        foreach ($lists as $list) {
+
+            $ticker = TinkoffTicker::where('ticker', $list)->select(['figi', 'ticker'])->first()->toArray();
+
+            if (!empty($ticker)) {
+
+                foreach ($pers as $per) {
+
+                    $candles = $this->tinkoff->getCandles($ticker['ticker'], '1M');
+
+                    $data = Strategy::FivePercentage(
+                        $candles,
+                        $per
+                    );
+
+                    if (!empty($data)) {
+
+                        $sum = 1;
+
+                        foreach ($data as $datum)
+                            $sum *= (1 + $datum / 100);
+
+                        $first = array_shift($candles);
+                        $last = array_pop($candles);
+
+                        debug(
+                            $ticker['ticker'] . ' | ' . $per . ' | ' . Math::round(($sum - 1) * 100)
+                            . ' | ' . Math::percentage($first['close'], $last['close'])
+                        );
+
+                    }
+
+                }
+
+            } else
+                debug($list . ' NOT FOUND');
+
+        }
+
+    }
+
+    public function processShares()
+    {
+
+        $tickers = TinkoffTicker::where([
+            ['name', 'NOT REGEXP', '^[а-яА-Я]'],
+            ['type', 'Stock']
+        ])->select(['id', 'ticker'])->get()->toArray();
+
+        foreach ($tickers as $ticker) {
+
+            $first_price = TinkoffMonthCandle::where('tinkoff_ticker_id', $ticker['id'])
+                ->orderBy('time_start', 'asc')->select(['close'])->first()->toArray()['close'];
+
+            $last_price = TinkoffMonthCandle::where('tinkoff_ticker_id', $ticker['id'])
+                ->orderBy('time_start', 'desc')->select(['close'])->first()->toArray()['close'];
+
+
+            debug($ticker['ticker'] . ' | ' . Math::percentage($first_price, $last_price));
 
         }
 

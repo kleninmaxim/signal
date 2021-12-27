@@ -86,10 +86,10 @@ class Binance
 
     }
 
-    public function getCandlesApiFormat($pair, $timeframe, $timae_start)
+    public function getCandlesApiFormat($pair, $timeframe, $time_start)
     {
 
-        $api_candles = $this->getCandlesApi($pair, $timeframe, $timae_start);
+        $api_candles = $this->getCandlesApi($pair, $timeframe, $time_start);
 
         foreach ($api_candles as $key => $candle) {
 
@@ -113,7 +113,7 @@ class Binance
     private function recordData($pair, $timeframe, $notify)
     {
 
-        $timae_start = 1503003600000;
+        $time_start = 1503003600000;
 
         do {
 
@@ -121,11 +121,11 @@ class Binance
 
                 $pair_str = str_replace('/', '', $pair->pair);
 
-                $api_candles = $this->getCandlesApi($pair_str, $timeframe, $timae_start);
+                $api_candles = $this->getCandlesApi($pair_str, $timeframe, $time_start);
 
                 $last = array_pop($api_candles);
 
-                $timae_start = $last[0];
+                $time_start = $last[0];
 
             } catch (\Exception $e) {
 
@@ -149,13 +149,13 @@ class Binance
 
     }
 
-    private function getCandlesApi($pair, $timeframe, $timae_start)
+    private function getCandlesApi($pair, $timeframe, $time_start)
     {
 
         return Http::get('https://api.binance.com/api/v3/klines', [
             'symbol' => $pair,
             'interval' => $timeframe,
-            'startTime' => $timae_start,
+            'startTime' => $time_start,
             'limit' => $this->limit,
         ])->collect()->toArray();
 
