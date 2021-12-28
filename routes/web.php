@@ -42,6 +42,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/percentage', [\App\Http\Controllers\PercentageController::class, 'percentage']);
 
+    Route::get('/hiney/test', [\App\Http\Controllers\HineyController::class, 'test']);
+
 
     Route::get('/binance/loadCandles', [\App\Http\Controllers\BinanceController::class, 'loadCandles']);
 
