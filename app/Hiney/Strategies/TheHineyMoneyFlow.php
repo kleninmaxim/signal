@@ -125,7 +125,7 @@ class TheHineyMoneyFlow
             'Price is: ' . $position['price'] . "\n" .
             'Stop Loss is: ' . $position['stop_loss'] . "\n" .
             'Take Profit is: ' . $position['take_profit'] . "\n" .
-            'Amount is: ' . $position['amount'] . "\n" .
+            'Amount in USDT is: ' . $position['amount'] . "\n" .
             'Timeframe is: ' . $timeframe . "\n";
 
     }
