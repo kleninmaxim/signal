@@ -3,6 +3,7 @@
 namespace App\Hiney;
 
 use Illuminate\Support\Facades\Http;
+use JetBrains\PhpStorm\Pure;
 
 class BinanceFutures
 {
@@ -35,161 +36,269 @@ class BinanceFutures
         ])->get(
             $this->base_url . '/fapi/v1/account',
             [
-                'timestamp' => time() * 1000,
+                'timestamp' => $this->getTimestamp(),
                 'signature' => $this->generateSignature()
             ]
         )->collect()->toArray();
 
     }
 
-    public function createOrder($symbol, $side, $quantity, $order_type, $price = null)/*: array*/
+    /*
+    Array
+    (
+        [orderId] => 4887710177
+        [symbol] => WAVESUSDT
+        [status] => NEW
+        [clientOrderId] => QRZTARXf9vKQd1iwzGyqUK
+        [price] => 10
+        [avgPrice] => 0.00000
+        [origQty] => 10
+        [executedQty] => 0
+        [cumQty] => 0
+        [cumQuote] => 0
+        [timeInForce] => GTC
+        [type] => LIMIT
+        [reduceOnly] =>
+        [closePosition] =>
+        [side] => BUY
+        [positionSide] => BOTH
+        [stopPrice] => 0
+        [workingType] => CONTRACT_PRICE
+        [priceProtect] =>
+        [origType] => LIMIT
+        [updateTime] => 1640719229063
+    )
+    */
+    public function createOrder($symbol, $side, $order_type, $quantity = null, $price = null, $stop_price = null, $close_position = null, $workingType = null): array
     {
-/*        $url = 'https://api.binance.com/api/v3/order';
-        $method = 'POST';
-        $headers = [
-            'X-MBX-APIKEY' => 'XFJbRCeV19v7kyNo7SuvJPkZaC9npEsrmcGabq5Z5fiY2Mu5ACDsukjl5JraApvH',
-            'Content-Type' => 'application/x-www-form-urlencoded',
-        ];
 
-        list($msec, $sec) = explode(' ', microtime());
+        $query = http_build_query([
+            'timestamp' => $this->getTimestamp(),
+            'symbol' => $symbol,
+            'type' => $order_type,
+            'side' => $side
+        ]);
 
-        $query = "timestamp=" . $sec . substr($msec, 2, 3) . "&symbol=WAVESUSDT&type=MARKET&side=BUY&quantity=20";
+        if (!empty($quantity))
+            $query .= '&quantity=' . $quantity;
 
-        $signature = \hash_hmac('sha256', $query, $this->private_api);
+        if (!empty($price))
+            $query .= '&price=' . $price;
 
-        $body = $query . '&signature=' . $signature;
+        if ($order_type == 'LIMIT' || $order_type == 'STOP' || $order_type == 'TAKE_PROFIT')
+            $query .= '&timeInForce=' . 'GTC';
 
-        if (!$headers) {
-            $headers = array();
-        } elseif (is_array($headers)) {
-            $tmp = $headers;
-            $headers = array();
-            foreach ($tmp as $key => $value) {
-                $headers[] = $key . ': ' . $value;
-            }
-        }
+        if (!empty($stop_price))
+            $query .= '&stopPrice=' . $stop_price;
 
-        $curl = curl_init();
+        if (!empty($close_position))
+            $query .= '&closePosition=' . $close_position;
 
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($curl, CURLOPT_ENCODING, '');
+        if ($order_type == 'STOP_MARKET' || $order_type == 'TAKE_PROFIT_MARKET')
+            $query .= '&workingType=' . $workingType;
 
-        if ($method == 'GET') {
-            curl_setopt($curl, CURLOPT_HTTPGET, true);
-        } elseif ($method == 'POST') {
-            curl_setopt($curl, CURLOPT_POST, true);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
-        } elseif ($method == 'PUT') {
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PUT');
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
-            $headers[] = 'X-HTTP-Method-Override: PUT';
-        } elseif ($method == 'PATCH') {
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PATCH');
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
-        } elseif ($method === 'DELETE') {
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
-
-            $headers[] = 'X-HTTP-Method-Override: DELETE';
-        }
-
-        if ($headers) {
-            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-        }
-
-        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($curl, CURLOPT_FAILONERROR, false);
-        curl_setopt($curl, CURLOPT_HEADER, 1);
-        curl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-
-
-        $result = mb_substr(curl_exec($curl), curl_getinfo($curl, CURLINFO_HEADER_SIZE));
-
-        debug($result, true);*/
-
-        list($msec, $sec) = explode(' ', microtime());
-
-        $query = "timestamp=" . $sec . substr($msec, 2, 3) . "&symbol=WAVESUSDT&type=MARKET&side=BUY&quantity=20";
-
-        $body = $query . '&signature=' . \hash_hmac('sha256', $query, $this->private_api);
+        $query .= '&signature=' . $this->generateSignatureWithQuery($query);
 
         return Http::withHeaders([
             'X-MBX-APIKEY' => $this->public_api,
             'Content-Type' => 'application/x-www-form-urlencoded',
-        ])->withBody($body, 'application/json')->post(
-            'https://api.binance.com/api/v3/order'
-        )->collect()->toArray();
-
-        //$side = BUY || SELL
-
-        if (!empty($price))
-            $options['price'] = $price;
-
-        $options = [
-            'symbol' => $symbol,
-            'side' => $side,
-            'quantity' => $quantity,
-            'type' => $order_type,
-            'timestamp' => time() * 1000,
-            'signature' => $this->generateSignature()
-        ];
-
-        return Http::withHeaders([
-            'X-MBX-APIKEY' => $this->public_api
-        ])->post(
-            $this->base_url . '/fapi/v1/order',
-            [
-                'symbol' => $symbol,
-                'side' => $side,
-                'quantity' => $quantity,
-                'type' => $order_type,
-                'timestamp' => time() * 1000,
-                'signature' => $this->generateSignature()
-            ]
+        ])->withBody($query, 'application/json')->post(
+            $this->base_url . '/fapi/v1/order'
         )->collect()->toArray();
 
     }
 
+/*
+    Array
+    (
+        [orderId] => 4887710177
+        [symbol] => WAVESUSDT
+        [status] => CANCELED
+        [clientOrderId] => QRZTARXf9vKQd1iwzGyqUK
+        [price] => 10
+        [avgPrice] => 0.00000
+        [origQty] => 10
+        [executedQty] => 0
+        [cumQty] => 0
+        [cumQuote] => 0
+        [timeInForce] => GTC
+        [type] => LIMIT
+        [reduceOnly] =>
+        [closePosition] =>
+        [side] => BUY
+        [positionSide] => BOTH
+        [stopPrice] => 0
+        [workingType] => CONTRACT_PRICE
+        [priceProtect] =>
+        [origType] => LIMIT
+        [updateTime] => 1640719301118
+    )
+
+    Array
+    (
+        [code] => -2011
+        [msg] => Unknown order sent.
+    )
+*/
     public function cancelOrder($order_id, $symbol): array
     {
+        $query = http_build_query([
+            'timestamp' => $this->getTimestamp(),
+            'orderId' => $order_id,
+            'symbol' => $symbol
+        ]);
 
         return Http::withHeaders([
-            'X-MBX-APIKEY' => $this->public_api
-        ])->delete(
-            $this->base_url . '/fapi/v1/order',
-            [
-                'orderId' => $order_id,
-                'symbol' => $symbol,
-                'timestamp' => time() * 1000,
-                'signature' => $this->generateSignature()
-            ]
-        )->collect()->toArray();
+            'X-MBX-APIKEY' => $this->public_api,
+            'Content-Type' => 'application/x-www-form-urlencoded',
+        ])->withBody(
+            $query . '&signature=' . $this->generateSignatureWithQuery($query),
+            'application/json'
+        )->delete($this->base_url . '/fapi/v1/order')->collect()->toArray();
 
     }
 
+/*
+    Array
+    (
+        [orderId] => 4887710177
+        [symbol] => WAVESUSDT
+        [status] => NEW
+        [clientOrderId] => QRZTARXf9vKQd1iwzGyqUK
+        [price] => 10
+        [avgPrice] => 0.00000
+        [origQty] => 10
+        [executedQty] => 0
+        [cumQuote] => 0
+        [timeInForce] => GTC
+        [type] => LIMIT
+        [reduceOnly] =>
+        [closePosition] =>
+        [side] => BUY
+        [positionSide] => BOTH
+        [stopPrice] => 0
+        [workingType] => CONTRACT_PRICE
+        [priceProtect] =>
+        [origType] => LIMIT
+        [time] => 1640719229063
+        [updateTime] => 1640719229063
+    )
+*/
     public function getOrderStatus($order_id, $symbol): array
     {
 
+        $timestamp = $this->getTimestamp();
+
+        $query = http_build_query([
+            'timestamp' => $timestamp,
+            'orderId' => $order_id,
+            'symbol' => $symbol
+        ]);
+
         return Http::withHeaders([
-            'X-MBX-APIKEY' => $this->public_api
-        ])->get(
-            $this->base_url . '/fapi/v1/order',
-            [
-                'orderId' => $order_id,
-                'symbol' => $symbol,
-                'timestamp' => time() * 1000,
-                'signature' => $this->generateSignature()
-            ]
-        )->collect()->toArray();
+            'X-MBX-APIKEY' => $this->public_api,
+            'Content-Type' => 'application/x-www-form-urlencoded',
+        ])->get($this->base_url . '/fapi/v1/order', [
+            'timestamp' => $timestamp,
+            'orderId' => $order_id,
+            'symbol' => $symbol,
+            'signature' => $this->generateSignatureWithQuery($query)
+        ])->collect()->toArray();
 
     }
 
-    private function generateSignature(): bool|string
+    public function getAllOpenOrders($symbol): array
     {
 
-        return hash_hmac('sha256', 'timestamp=' . time() * 1000, $this->private_api);
+        $timestamp = $this->getTimestamp();
+
+        $query = http_build_query([
+            'timestamp' => $timestamp,
+            'symbol' => $symbol,
+        ]);
+
+        return Http::withHeaders([
+            'X-MBX-APIKEY' => $this->public_api,
+            'Content-Type' => 'application/x-www-form-urlencoded',
+        ])->get($this->base_url . '/fapi/v1/openOrders', [
+            'timestamp' => $timestamp,
+            'symbol' => $symbol,
+            'signature' => $this->generateSignatureWithQuery($query)
+        ])->collect()->toArray();
+
+    }
+
+    /*
+    Array
+    (
+        [0] => Array
+        (
+        [symbol] => WAVESUSDT
+        [positionAmt] => 2.0
+        [entryPrice] => 14.7895
+        [markPrice] => 14.79725859
+        [unRealizedProfit] => 0.01551718
+        [liquidationPrice] => 0
+        [leverage] => 50
+        [maxNotionalValue] => 5000
+        [marginType] => cross
+        [isolatedMargin] => 0.00000000
+        [isAutoAddMargin] => false
+        [positionSide] => BOTH
+        [notional] => 29.59451718
+        [isolatedWallet] => 0
+        [updateTime] => 1640720914294
+        )
+    )
+    */
+    public function getPositionInformation($symbol = null): array
+    {
+
+        $timestamp = $this->getTimestamp();
+
+        $query = 'timestamp=' . $timestamp;
+
+        if (!empty($symbol)) {
+            $query .= '&symbol=' . $symbol;
+            $body = [
+                'timestamp' => $timestamp,
+                'symbol' => $symbol,
+                'signature' => $this->generateSignatureWithQuery($query)
+            ];
+        } else {
+            $body = [
+                'timestamp' => $timestamp,
+                'signature' => $this->generateSignatureWithQuery($query)
+            ];
+        }
+
+        return Http::withHeaders([
+            'X-MBX-APIKEY' => $this->public_api,
+            'Content-Type' => 'application/x-www-form-urlencoded',
+        ])->get($this->base_url . '/fapi/v2/positionRisk', $body)->collect()->toArray();
+
+    }
+
+    #[Pure] private function generateSignature(): bool|string
+    {
+
+        return hash_hmac('sha256', 'timestamp=' . $this->getTimestamp(), $this->private_api);
+
+    }
+
+    private function generateSignatureWithQuery($query): string
+    {
+
+        return \hash_hmac('sha256', $query, $this->private_api);
+
+    }
+
+    private function getTimestamp(): string
+    {
+
+        list($msec, $sec) = explode(' ', microtime());
+
+        return $sec . substr($msec, 2, 3);
 
     }
 
