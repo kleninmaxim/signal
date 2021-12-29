@@ -22,20 +22,28 @@ class TheHineyMoneyFlow
 
         $candles = array_values($candles);
 
-        (new HeikinAshi())->put($candles);
+        if (count($candles) >= 50) {
 
-        (new Mfi())->put($candles);
+            (new HeikinAshi())->put($candles);
 
-        (new AtrBands(atr_multiplier_upper:  5, atr_multiplier_lower: 5))->put($candles);
+            (new Mfi())->put($candles);
 
-        $this->candles = array_slice(array_reverse($candles), 0, 10);
+            (new AtrBands(atr_multiplier_upper:  5, atr_multiplier_lower: 5))->put($candles);
+
+            $this->candles = array_slice(array_reverse($candles), 0, 10);
+
+        } else {
+
+            /* TODO: отправить сообщение об ошибке */
+
+        }
 
     }
 
     public function run(): bool|array
     {
 
-        if (!empty($this->candles)) {
+        if (isset($this->candles)) {
 
             $current_candle = array_shift($this->candles);
 
@@ -117,7 +125,7 @@ class TheHineyMoneyFlow
             'Price is: ' . $position['price'] . "\n" .
             'Stop Loss is: ' . $position['stop_loss'] . "\n" .
             'Take Profit is: ' . $position['take_profit'] . "\n" .
-            'Amount is: ' . $position['take_profit'] . "\n" .
+            'Amount is: ' . $position['amount'] . "\n" .
             'Timeframe is: ' . $timeframe . "\n";
 
     }

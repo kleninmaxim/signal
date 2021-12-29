@@ -47,6 +47,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/hiney/saveToFileContractsPrecisions', [\App\Http\Controllers\HineyController::class, 'saveToFileContractsPrecisions']);
 
+    Route::get('/hiney/hineyStrategy', [\App\Http\Controllers\HineyController::class, 'hineyStrategy']);
+
 
     Route::get('/binance/loadCandles', [\App\Http\Controllers\BinanceController::class, 'loadCandles']);
 

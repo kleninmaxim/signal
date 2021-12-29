@@ -152,7 +152,7 @@ class HineyController extends Controller
 
                     // создать экземпляр стратегии по свечам бинанса
                     $strategy = new TheHineyMoneyFlow(
-                        Binance::getCandles($pair, $timeframe)
+                        Binance::getCandles($pair, $timeframe, removeCurrent: true)
                     );
 
                     // запустить стратегию

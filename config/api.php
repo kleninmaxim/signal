@@ -12,6 +12,10 @@ return [
 
     'telegram_user_id' => env('TELEGRAM_USER_ID'),
 
-    'telegram_dima_id' => env('TELEGRAM_DIMA_ID'),
+    //'telegram_dima_id' => env('TELEGRAM_DIMA_ID'),
+
+    'public_api' => env('API_PUBLIC_BINANCE'),
+
+    'private_api' => env('API_PRIVATE_BINANCE'),
 
 ];
