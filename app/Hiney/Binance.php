@@ -2,6 +2,7 @@
 
 namespace App\Hiney;
 
+use App\Hiney\Src\Telegram;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 
@@ -11,7 +12,24 @@ class Binance
     public static function getCandles($pair, $timeframe, $limit = 100, $removeCurrent = false): array
     {
 
-        foreach (self::getCandlesApi($pair, $timeframe, $limit) as $key => $candle)
+        $candles = self::getCandlesApi($pair, $timeframe, $limit);
+
+        while(isset($candles['code']) && isset($candles['msg'])) {
+
+            usleep(100000);
+
+            $telegram = new Telegram(
+                config('api.telegram_token_binance'),
+                config('api.telegram_user_id')
+            );
+
+            $telegram->send('CAN NOT GET CANDLES!!!' . json_encode($candles));
+
+            $candles = self::getCandlesApi($pair, $timeframe, $limit);
+
+        }
+
+        foreach ($candles as $key => $candle)
             $candles[$key] = [
                 'open' => $candle[1],
                 'high' => $candle[2],
@@ -26,7 +44,7 @@ class Binance
             $current_candle = array_pop($candles);
 
             if ($current_candle['time_start'] < self::maxCandleTimeStart($timeframe))
-                $candles[] = $candles;
+                $candles[] = $current_candle;
 
         }
 
