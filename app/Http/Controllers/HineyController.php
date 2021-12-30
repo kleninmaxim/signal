@@ -150,6 +150,14 @@ class HineyController extends Controller
             // берем текущий баланс
             $balances = $binance_futures->getBalances();
 
+            for ($i = 0; $i <= 5; $i++)
+                if (!isset($balances['totalWalletBalance']) || !isset($balances['assets']) || !isset($balances['positions'])) {
+                    usleep(100000);
+                    $telegram->send('Can\'t get balance!!! Message: ' . $balances . "\n"); // отправляет сообщение в телеграм о непоступлении баланса
+                    $balances = $binance_futures->getBalances();
+                } else
+                    break;
+
             // если баланс пришел корректно
             if (isset($balances['totalWalletBalance']) && isset($balances['assets']) && isset($balances['positions'])) {
 
