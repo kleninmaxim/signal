@@ -119,7 +119,7 @@ class HineyController extends Controller
             'UNIUSDT',
             'VETUSDT',
             'WAVESUSDT',
-            'XEMUSDT',
+            //'XEMUSDT',
             'XLMUSDT',
             'XMRUSDT',
             'XRPUSDT',
