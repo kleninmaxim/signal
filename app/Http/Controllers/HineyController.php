@@ -233,7 +233,8 @@ class HineyController extends Controller
                                     $strategy->reversePosition($position['position']),
                                     'STOP_MARKET',
                                     stop_price: $position['stop_loss'],
-                                    close_position: 'true'
+                                    close_position: 'true',
+                                    workingType: 'MARK_PRICE'
                                 );
 
                                 // поставить тейк профит
@@ -242,7 +243,8 @@ class HineyController extends Controller
                                     $strategy->reversePosition($position['position']),
                                     'TAKE_PROFIT_MARKET',
                                     stop_price: $position['take_profit'],
-                                    close_position: 'true'
+                                    close_position: 'true',
+                                    workingType: 'MARK_PRICE'
                                 );
 
                                 if (!$stop_market)
