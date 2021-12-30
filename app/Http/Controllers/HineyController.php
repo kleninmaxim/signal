@@ -185,6 +185,39 @@ class HineyController extends Controller
                             // округли все значения в соответсвии с биржей по precisions из файла
                             $strategy->round($position, $precisions[$pair]);
 
+                            // поставить ордер
+                            $order = $binance_futures->createOrder($pair, $position['position'], 'MARKET', $position['amount']);
+
+                            // если ордер поставился
+                            if ($order) {
+
+                                // поставить стоп лосс
+                                $stop_market = $binance_futures->createOrder(
+                                    $pair,
+                                    $strategy->reversePosition($position['position']),
+                                    'STOP_MARKET',
+                                    stop_price: $position['stop_loss'],
+                                    close_position: 'true'
+                                );
+
+                                // поставить тейк профит
+                                $take_profit = $binance_futures->createOrder(
+                                    $pair,
+                                    $strategy->reversePosition($position['position']),
+                                    'TAKE_PROFIT_MARKET',
+                                    stop_price: $position['take_profit'],
+                                    close_position: 'true'
+                                );
+
+                                if (!$stop_market)
+                                    $telegram->send($pair . ' Stop loss is not set!!!' . "\n"); // отправляет сообщение в телеграм о том, что стоп лосс не выставлен
+
+                                if (!$take_profit)
+                                    $telegram->send($pair . ' Take Profit is not set!!!' . "\n"); // отправляет сообщение в телеграм о том, что тейк профит не выставлен
+
+                            } else
+                                $telegram->send($pair . ' For some reason order is not created!!!' . "\n"); // отправляет сообщение в телеграм об ошибке постановки ордера
+
                             // отправляет сообщение в телеграм о нашей позиции
                             $telegram->send(
                                 $strategy->message($pair, $position, $timeframe)

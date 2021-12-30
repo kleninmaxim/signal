@@ -130,6 +130,13 @@ class TheHineyMoneyFlow
 
     }
 
+    public function reversePosition($position): string
+    {
+
+        return ($position == $this->buy) ? $this->sell : $this->buy;
+
+    }
+
     private function countTakeProfit($price, $stop_loss): float|int
     {
 

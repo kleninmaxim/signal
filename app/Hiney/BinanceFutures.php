@@ -74,7 +74,7 @@ class BinanceFutures
         [updateTime] => 1640719229063
     )
     */
-    public function createOrder($symbol, $side, $order_type, $quantity = null, $price = null, $stop_price = null, $close_position = null, $workingType = null): array
+    public function createOrder($symbol, $side, $order_type, $quantity = null, $price = null, $stop_price = null, $close_position = null, $workingType = null): array|bool
     {
 
         $query = http_build_query([
@@ -104,12 +104,17 @@ class BinanceFutures
 
         $query .= '&signature=' . $this->generateSignatureWithQuery($query);
 
-        return Http::withHeaders([
+        $create_order = Http::withHeaders([
             'X-MBX-APIKEY' => $this->public_api,
             'Content-Type' => 'application/x-www-form-urlencoded',
         ])->withBody($query, 'application/json')->post(
             $this->base_url . '/fapi/v1/order'
         )->collect()->toArray();
+
+        if (isset($create_order['orderId']) && isset($create_order['symbol']))
+            return $create_order;
+
+        return false;
 
     }
 
