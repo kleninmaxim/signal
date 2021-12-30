@@ -44,7 +44,7 @@ class BinanceFutures
         if (isset($balances['totalWalletBalance']) && isset($balances['assets']) && isset($balances['positions']))
             return $balances;
 
-        return false;
+        return json_encode($balances);
 
     }
 

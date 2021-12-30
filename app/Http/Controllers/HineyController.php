@@ -151,7 +151,7 @@ class HineyController extends Controller
             $balances = $binance_futures->getBalances();
 
             // если баланс пришел корректно
-            if ($balances) {
+            if (isset($balances['totalWalletBalance']) && isset($balances['assets']) && isset($balances['positions'])) {
 
                 // взять все пары к которым есть информация
                 $precisions = json_decode(Storage::get($this->file), true);
@@ -257,7 +257,7 @@ class HineyController extends Controller
                         $telegram->send($pair . ' is in position or something wrong!!!' . "\n");*/ // отправляет сообщение в телеграм об ошибке
 
             } else
-                $telegram->send('Can\'t get balance!!!' . "\n"); // отправляет сообщение в телеграм о непоступлении баланса
+                $telegram->send('Can\'t get balance!!! Message: ' . $balances . "\n"); // отправляет сообщение в телеграм о непоступлении баланса
 
         }
 
