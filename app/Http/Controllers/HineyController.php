@@ -18,6 +18,8 @@ class HineyController extends Controller
     public function test()
     {
 
+        debug((new BinanceFutures())->getAllOpenOrders('BTCUSDT'), true);
+
         //debug((new BinanceFutures())->getBalances(), true);
 
         //debug((new BinanceFutures())->getContracts(), true);
@@ -179,6 +181,32 @@ class HineyController extends Controller
                         // если появилась возможность открыть позицию
                         if ($position) {
 
+                            // Отменить текущие открытые ордераъ
+                            $open_orders = $binance_futures->getAllOpenOrders($pair);
+
+                            if (!empty($open_orders)) {
+
+                                if ((is_array($open_orders) && isset($open_orders[0]['orderId']) && isset($open_orders[0]['symbol']))) {
+
+                                    foreach ($open_orders as $open_order) {
+
+                                        $cancel_order = $binance_futures->cancelOrder($open_order['orderId'], $open_order['symbol']);
+
+                                        if (!isset($cancel_order['orderId']) || !isset($cancel_order['status']) || $cancel_order['status'] != 'CANCELED') {
+
+                                            $telegram->send($pair . ' Order can\'t be closed!!! JSON: ' . json_encode($cancel_order) . "\n"); // отправляет сообщение в телеграм об ошибке отмены ордера
+
+                                            continue 2;
+
+                                        }
+
+                                    }
+
+                                } else
+                                    $telegram->send($pair . ' For some reason order is not created!!! JSON: ' . $open_orders . "\n"); // отправляет сообщение в телеграм об ошибке получения открытых ордеров
+
+                            }
+
                             // посчитай amount, который нужно для открытия позиции
                             $position['amount'] = $strategy->countAmount();
 
@@ -189,7 +217,7 @@ class HineyController extends Controller
                             $order = $binance_futures->createOrder($pair, $position['position'], 'MARKET', $position['amount']);
 
                             // если ордер поставился
-                            if ($order) {
+                            if (isset($order['orderId']) && isset($order['symbol'])) {
 
                                 // поставить стоп лосс
                                 $stop_market = $binance_futures->createOrder(
@@ -210,18 +238,18 @@ class HineyController extends Controller
                                 );
 
                                 if (!$stop_market)
-                                    $telegram->send($pair . ' Stop loss is not set!!!' . "\n"); // отправляет сообщение в телеграм о том, что стоп лосс не выставлен
+                                    $telegram->send($pair . ' Stop loss is not set!!! JSON: ' . $stop_market .  "\n"); // отправляет сообщение в телеграм о том, что стоп лосс не выставлен
 
                                 if (!$take_profit)
-                                    $telegram->send($pair . ' Take Profit is not set!!!' . "\n"); // отправляет сообщение в телеграм о том, что тейк профит не выставлен
+                                    $telegram->send($pair . ' Take Profit is not set!!! JSON: ' . $take_profit .  "\n"); // отправляет сообщение в телеграм о том, что тейк профит не выставлен
+
+                                // отправляет сообщение в телеграм о нашей позиции
+                                $telegram->send(
+                                    $strategy->message($pair, $position, $timeframe)
+                                );
 
                             } else
-                                $telegram->send($pair . ' For some reason order is not created!!!' . "\n"); // отправляет сообщение в телеграм об ошибке постановки ордера
-
-                            // отправляет сообщение в телеграм о нашей позиции
-                            $telegram->send(
-                                $strategy->message($pair, $position, $timeframe)
-                            );
+                                $telegram->send($pair . ' For some reason order is not created!!! JSON: ' . $order . "\n"); // отправляет сообщение в телеграм об ошибке постановки ордера
 
                         }
 

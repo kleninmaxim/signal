@@ -114,7 +114,7 @@ class BinanceFutures
         if (isset($create_order['orderId']) && isset($create_order['symbol']))
             return $create_order;
 
-        return false;
+        return json_encode($create_order);
 
     }
 
@@ -217,7 +217,7 @@ class BinanceFutures
 
     }
 
-    public function getAllOpenOrders($symbol): array
+    public function getAllOpenOrders($symbol): array|bool
     {
 
         $timestamp = $this->getTimestamp();
@@ -227,7 +227,7 @@ class BinanceFutures
             'symbol' => $symbol,
         ]);
 
-        return Http::withHeaders([
+        $open_orders = Http::withHeaders([
             'X-MBX-APIKEY' => $this->public_api,
             'Content-Type' => 'application/x-www-form-urlencoded',
         ])->get($this->base_url . '/fapi/v1/openOrders', [
@@ -235,6 +235,11 @@ class BinanceFutures
             'symbol' => $symbol,
             'signature' => $this->generateSignatureWithQuery($query)
         ])->collect()->toArray();
+
+        if ((is_array($open_orders) && isset($open_orders[0]['orderId']) && isset($open_orders[0]['symbol'])) || empty($open_orders))
+            return $open_orders;
+
+        return json_encode($open_orders);
 
     }
 

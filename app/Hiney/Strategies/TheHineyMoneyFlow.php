@@ -111,7 +111,7 @@ class TheHineyMoneyFlow
 
         $position['take_profit'] = Math::round($position['take_profit'], $precisions['price_precision']);
 
-        $position['amount'] = Math::round($position['amount'], $precisions['amount_precision']);
+        $position['amount'] = Math::round($position['amount'] / $position['price'], $precisions['amount_precision']);
 
     }
 
@@ -125,7 +125,8 @@ class TheHineyMoneyFlow
             'Price is: ' . $position['price'] . "\n" .
             'Stop Loss is: ' . $position['stop_loss'] . "\n" .
             'Take Profit is: ' . $position['take_profit'] . "\n" .
-            'Amount in USDT is: ' . $position['amount'] . "\n" .
+            'Amount in USDT is: ' . Math::round($position['amount'] * $position['price']) . "\n" .
+            'Amount: ' . $position['amount'] . "\n" .
             'Timeframe is: ' . $timeframe . "\n";
 
     }
