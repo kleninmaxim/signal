@@ -28,10 +28,10 @@ class BinanceFutures
 
     }
 
-    public function getBalances(): array
+    public function getBalances(): array|bool
     {
 
-        return Http::withHeaders([
+        $balances = Http::withHeaders([
             'X-MBX-APIKEY' => $this->public_api
         ])->get(
             $this->base_url . '/fapi/v1/account',
@@ -40,6 +40,11 @@ class BinanceFutures
                 'signature' => $this->generateSignature()
             ]
         )->collect()->toArray();
+
+        if (isset($balances['totalWalletBalance']) && isset($balances['assets']) && isset($balances['positions']))
+            return $balances;
+
+        return false;
 
     }
 

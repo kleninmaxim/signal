@@ -18,6 +18,8 @@ class HineyController extends Controller
     public function test()
     {
 
+        //debug((new BinanceFutures())->getBalances(), true);
+
         //debug((new BinanceFutures())->getContracts(), true);
 
         //debug((new BinanceFutures())->cancelOrder('4887726141', 'WAVESUSDT'), true);
@@ -49,9 +51,6 @@ class HineyController extends Controller
 
     public function hineyStrategy()
     {
-
-        // записать precisions в файл
-        $this->saveToFileContractsPrecisions();
 
         // пары
         $pairs = [
@@ -91,7 +90,7 @@ class HineyController extends Controller
             'HNTUSDT',
             'HOTUSDT',
             'ICPUSDT',
-            'ICXUSDT',
+            //'ICXUSDT',
             'IOTXUSDT',
             'KLAYUSDT',
             'KSMUSDT',
@@ -131,14 +130,11 @@ class HineyController extends Controller
         // таймфрейм
         $timeframe = '5m';
 
+        // записать precisions в файл
+        $this->saveToFileContractsPrecisions();
+
         // проверка на то, что файл этот есть
         if (Storage::disk($this->disk)->exists($this->file)) {
-
-            // взять все пары к которым есть информация
-            $precisions = json_decode(Storage::get($this->file), true);
-
-            // взять все торгующиеся пары
-            $pairs_original = array_keys($precisions);
 
             // создание телеграм для отправки сообщения
             $telegram = new Telegram(
@@ -146,36 +142,61 @@ class HineyController extends Controller
                 config('api.telegram_user_id')
             );
 
-            // пройтись по всем заданным мною парам, убедиться, что они существуют и переходить к стратегии
-            foreach ($pairs as $pair)
-                if (in_array($pair, $pairs_original)) {
+            // объект для взаимодействия с фьючерсами binance через API
+            $binance_futures = new BinanceFutures();
 
-                    // создать экземпляр стратегии по свечам бинанса
-                    $strategy = new TheHineyMoneyFlow(
-                        Binance::getCandles($pair, $timeframe, removeCurrent: true)
-                    );
+            // берем текущий баланс
+            $balances = $binance_futures->getBalances();
 
-                    // запустить стратегию
-                    $position = $strategy->run();
+            // если баланс пришел корректно
+            if ($balances) {
 
-                    // если появилась возможность открыть позицию
-                    if ($position) {
+                // взять все пары к которым есть информация
+                $precisions = json_decode(Storage::get($this->file), true);
 
-                        // посчитай amount, который нужно для открытия позиции
-                        $position['amount'] = $strategy->countAmount();
+                // взять все торгующиеся пары
+                $pairs_original = array_keys($precisions);
 
-                        // округли все значения в соответсвии с биржей по precisions из файла
-                        $strategy->round($position, $precisions[$pair]);
+                // объявляем начальное положение рынков не в позиции
+                $pairs_not_in_position = [];
 
-                        // отправляет сообщение в телеграм о нашей позиции
-                        $telegram->send(
-                            $strategy->message($pair, $position, $timeframe)
+                // проходимся по всем позициям и смотрим какие рынке находятся не в позиции
+                foreach ($balances['positions'] as $balance)
+                    if ($balance['notional'] == 0 ) $pairs_not_in_position[] = $balance['symbol'];
+
+                // пройтись по всем заданным мною рынкам, убедиться, что они существуют и не находятся в позиции и переходить к стратегии
+                foreach ($pairs as $pair)
+                    if (in_array($pair, $pairs_original) && in_array($pair, $pairs_not_in_position)) {
+
+                        // создать экземпляр стратегии по свечам бинанса
+                        $strategy = new TheHineyMoneyFlow(
+                            Binance::getCandles($pair, $timeframe, removeCurrent: true)
                         );
 
-                    }
+                        // запустить стратегию
+                        $position = $strategy->run();
 
-                } else
-                    $telegram->send($pair . ' is wrong!!!' . "\n"); // отправляет сообщение в телеграм об ошибке
+                        // если появилась возможность открыть позицию
+                        if ($position) {
+
+                            // посчитай amount, который нужно для открытия позиции
+                            $position['amount'] = $strategy->countAmount();
+
+                            // округли все значения в соответсвии с биржей по precisions из файла
+                            $strategy->round($position, $precisions[$pair]);
+
+                            // отправляет сообщение в телеграм о нашей позиции
+                            $telegram->send(
+                                $strategy->message($pair, $position, $timeframe)
+                            );
+
+                        }
+
+                    } else
+                        $telegram->send($pair . ' is in position or something wrong!!!' . "\n"); // отправляет сообщение в телеграм об ошибке
+
+            } else
+                $telegram->send('Can\'t get balance!!!' . "\n"); // отправляет сообщение в телеграм о непоступлении баланса
 
         }
 
