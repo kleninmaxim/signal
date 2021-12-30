@@ -225,8 +225,8 @@ class HineyController extends Controller
 
                         }
 
-                    } else
-                        $telegram->send($pair . ' is in position or something wrong!!!' . "\n"); // отправляет сообщение в телеграм об ошибке
+                    } /*else
+                        $telegram->send($pair . ' is in position or something wrong!!!' . "\n");*/ // отправляет сообщение в телеграм об ошибке
 
             } else
                 $telegram->send('Can\'t get balance!!!' . "\n"); // отправляет сообщение в телеграм о непоступлении баланса
