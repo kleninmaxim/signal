@@ -26,7 +26,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
 
-        $schedule->call('\App\Http\Controllers\HineyController@hineyStrategy')->everyFiveMinutes();
+        //$schedule->call('\App\Http\Controllers\HineyController@hineyStrategy')->everyFiveMinutes();
 
 /*        $schedule->call('\App\Http\Controllers\TinkoffController@saveDayCloseCandleTime')
             ->weekdays()
