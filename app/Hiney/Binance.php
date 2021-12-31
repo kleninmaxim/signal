@@ -81,17 +81,13 @@ class Binance
             ])->collect()->toArray();
 
             if (
-                isset($candles[0][0]) &&
-                isset($candles[0][1]) &&
-                isset($candles[0][2]) &&
-                isset($candles[0][3]) &&
-                isset($candles[0][4]) &&
-                isset($candles[0][5]))
-            {
-
-                return $candles;
-
-            } else {
+                !isset($candles[0][0]) ||
+                !isset($candles[0][1]) ||
+                !isset($candles[0][2]) ||
+                !isset($candles[0][3]) ||
+                !isset($candles[0][4]) ||
+                !isset($candles[0][5])
+            ) {
 
                 usleep(100000);
 
@@ -102,7 +98,8 @@ class Binance
 
                 (new Telegram())->send('Pair: ' . $pair . '. Can\'t get candles throw api!!! JSON: ' . json_encode($candles) .  "\n");
 
-            }
+            } else
+                return $candles;
 
         }
 
