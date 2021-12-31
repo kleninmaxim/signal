@@ -6,6 +6,9 @@ use App\Hiney\Indicators\AtrBands;
 use App\Hiney\Indicators\HeikinAshi;
 use App\Hiney\Indicators\Mfi;
 use App\Hiney\Src\Math;
+use App\Hiney\Src\Telegram;
+use App\Models\ErrorLog;
+use JetBrains\PhpStorm\Pure;
 
 class TheHineyMoneyFlow
 {
@@ -34,7 +37,14 @@ class TheHineyMoneyFlow
 
         } else {
 
-            /* TODO: отправить сообщение об ошибке */
+            ErrorLog::create([
+                'title' => 'Candles less than 50!',
+                'message' => json_encode($candles),
+            ]);
+
+            (new Telegram())->send(
+                'Candles less than 50!' . "\n"
+            );
 
         }
 
@@ -83,10 +93,6 @@ class TheHineyMoneyFlow
 
             }
 
-        } else {
-
-            /* TODO: отправить сообщение об ошибке */
-
         }
 
         return false;
@@ -115,7 +121,7 @@ class TheHineyMoneyFlow
 
     }
 
-    public function message($pair, $position, $timeframe): string
+    #[Pure] public function message($pair, $position, $timeframe): string
     {
 
         return
