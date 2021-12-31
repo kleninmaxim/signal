@@ -74,11 +74,14 @@ class Binance
 
         for ($i = 0; $i < 5; $i++) {
 
-            $candles = Http::get('https://api.binance.com/api/v3/klines', [
-                'symbol' => $pair,
-                'interval' => $timeframe,
-                'limit' => $limit,
-            ])->collect()->toArray();
+            $candles = Http::get(
+                'https://api.binance.com/api/v3/klines',
+                [
+                    'symbol' => $pair,
+                    'interval' => $timeframe,
+                    'limit' => $limit,
+                ]
+            )->collect()->toArray();
 
             if (
                 !isset($candles[0][0]) ||
@@ -92,11 +95,13 @@ class Binance
                 usleep(100000);
 
                 ErrorLog::create([
-                    'title' => 'Can\'t get candles throw api',
+                    'title' => 'Can\'t get candles throw api. Tries: ' . $i,
                     'message' => json_encode($candles),
                 ]);
 
-                (new Telegram())->send('Pair: ' . $pair . '. Can\'t get candles throw api!!! JSON: ' . json_encode($candles) .  "\n");
+                (new Telegram())->send(
+                    'Pair: ' . $pair . '. Can\'t get candles throw api!!! Tries: ' . $i . '. JSON: ' . json_encode($candles) . "\n"
+                );
 
             } else
                 return $candles;
