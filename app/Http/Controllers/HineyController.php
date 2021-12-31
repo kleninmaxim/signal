@@ -6,6 +6,8 @@ use App\Hiney\Binance;
 use App\Hiney\BinanceFutures;
 use App\Hiney\Src\Telegram;
 use App\Hiney\Strategies\TheHineyMoneyFlow;
+use App\Models\Statistic\Balance;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 class HineyController extends Controller
@@ -17,10 +19,6 @@ class HineyController extends Controller
 
     public function test()
     {
-
-        debug((new BinanceFutures())->getAllOpenOrders('BTCUSDT'), true);
-
-        //debug((new BinanceFutures())->getBalances(), true);
 
         //debug((new BinanceFutures())->getContracts(), true);
 
@@ -268,6 +266,33 @@ class HineyController extends Controller
 
             } else
                 $telegram->send('Can\'t get balance!!! Message: ' . $balances . "\n"); // отправляет сообщение в телеграм о непоступлении баланса
+
+        }
+
+    }
+
+    public function statisticBalance()
+    {
+
+        for ($i = 0; $i < 5; $i++) {
+
+            $balances = (new BinanceFutures())->getBalances();
+
+            if (isset($balances['totalWalletBalance']) && isset($balances['assets']) && isset($balances['positions'])) {
+
+                Balance::create([
+                    'total_wallet_balance' => $balances['totalWalletBalance'],
+                    'total_unrealized_profit' => $balances['totalUnrealizedProfit'],
+                    'total_margin_balance' => $balances['totalMarginBalance'],
+                    'available_balance' => $balances['availableBalance'],
+                    'created_at' => Carbon::now()->format('Y-m-d H:00:00')
+                ]);
+
+                break;
+
+            }
+
+            usleep(100000);
 
         }
 

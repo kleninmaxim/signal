@@ -28,6 +28,9 @@ class Kernel extends ConsoleKernel
 
         $schedule->call('\App\Http\Controllers\HineyController@hineyStrategy')->everyFiveMinutes();
 
+        /* Статистика */
+        $schedule->call('\App\Http\Controllers\HineyController@statisticBalance')->hourlyAt(1);
+
 /*        $schedule->call('\App\Http\Controllers\TinkoffController@saveDayCloseCandleTime')
             ->weekdays()
             ->dailyAt('5:00');
