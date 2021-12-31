@@ -48,6 +48,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/hiney/statisticBalance', [\App\Http\Controllers\HineyController::class, 'statisticBalance']);
 
+    Route::get('/hiney/cancelOrderWherePairNotInPosition', [\App\Http\Controllers\HineyController::class, 'cancelOrderWherePairNotInPosition']);
+
 
     Route::get('/binance/loadCandles', [\App\Http\Controllers\BinanceController::class, 'loadCandles']);
 

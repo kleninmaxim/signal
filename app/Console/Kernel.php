@@ -26,7 +26,11 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
 
+        // Главный алгоритм
         $schedule->call('\App\Http\Controllers\HineyController@hineyStrategy')->everyFiveMinutes();
+
+        // Отменить все ордера в которых пары находятся вне позиции
+        $schedule->call('\App\Http\Controllers\HineyController@cancelOrderWherePairNotInPosition')->hourlyAt(58);
 
         /* Статистика */
         $schedule->call('\App\Http\Controllers\HineyController@statisticBalance')->hourlyAt(1);

@@ -209,7 +209,7 @@ class BinanceFutures
         [msg] => Unknown order sent.
     )
 */
-    public function cancelOrder($order_id, $symbol): array|bool
+    public function cancelOrder(string $order_id, string $symbol): array|bool
     {
 
         for ($i = 0; $i < 5; $i++) {
@@ -282,7 +282,7 @@ class BinanceFutures
         [updateTime] => 1640719229063
     )
 */
-    public function getOrderStatus($order_id, $symbol): array|bool
+    public function getOrderStatus(string $order_id, string $symbol): array|bool
     {
 
         for ($i = 0; $i < 5; $i++) {
@@ -327,7 +327,7 @@ class BinanceFutures
 
     }
 
-    public function getAllOpenOrders($symbol): array|bool
+    public function getAllOpenOrders(string $symbol): array|bool
     {
 
         for ($i = 0; $i < 5; $i++) {
@@ -393,7 +393,7 @@ class BinanceFutures
         )
     )
     */
-    public function getPositionInformation($symbol = null): array|bool
+    public function getPositionInformation(string $symbol = null): array|bool
     {
         for ($i = 0; $i < 5; $i++) {
 
@@ -434,6 +434,16 @@ class BinanceFutures
         }
 
         return false;
+
+    }
+
+    public function getPairsNotInPosition($balances): array
+    {
+
+        foreach ($balances['positions'] as $balance)
+            if ($balance['notional'] == 0) $pairs_not_in_position[] = $balance['symbol'];
+
+        return $pairs_not_in_position ?? [];
 
     }
 

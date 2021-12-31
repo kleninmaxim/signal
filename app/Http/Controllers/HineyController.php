@@ -68,79 +68,7 @@ class HineyController extends Controller
     {
 
         // пары
-        $pairs = [
-            '1INCHUSDT',
-            'AAVEUSDT',
-            'ADAUSDT',
-            'ALGOUSDT',
-            'ANKRUSDT',
-            'ARUSDT',
-            'ATOMUSDT',
-            'AUDIOUSDT',
-            'AVAXUSDT',
-            'AXSUSDT',
-            'BATUSDT',
-            'BCHUSDT',
-            'BNBUSDT',
-            'BTCUSDT',
-            'BTTUSDT',
-            'CELOUSDT',
-            'CHZUSDT',
-            'COMPUSDT',
-            'CRVUSDT',
-            'DASHUSDT',
-            'DOGEUSDT',
-            'DOTUSDT',
-            'EGLDUSDT',
-            'ENJUSDT',
-            'ENSUSDT',
-            'EOSUSDT',
-            'ETCUSDT',
-            'ETHUSDT',
-            'FILUSDT',
-            'FTMUSDT',
-            'GALAUSDT',
-            'GRTUSDT',
-            'HBARUSDT',
-            'HNTUSDT',
-            'HOTUSDT',
-            'ICPUSDT',
-            //'ICXUSDT',
-            'IOTXUSDT',
-            'KLAYUSDT',
-            'KSMUSDT',
-            'LINKUSDT',
-            'LPTUSDT',
-            'LRCUSDT',
-            'LTCUSDT',
-            'LUNAUSDT',
-            'MANAUSDT',
-            'MATICUSDT',
-            'MKRUSDT',
-            'NEARUSDT',
-            'NEOUSDT',
-            'OMGUSDT',
-            'QTUMUSDT',
-            'RUNEUSDT',
-            'RVNUSDT',
-            'SANDUSDT',
-            'SCUSDT',
-            'SOLUSDT',
-            'SUSHIUSDT',
-            'THETAUSDT',
-            'TRXUSDT',
-            'UNIUSDT',
-            'VETUSDT',
-            'WAVESUSDT',
-            //'XEMUSDT',
-            'XLMUSDT',
-            'XMRUSDT',
-            'XRPUSDT',
-            'XTZUSDT',
-            'ZECUSDT',
-            'ZENUSDT',
-            'ZILUSDT',
-        ];
+        $pairs = $this->getPairs();
 
         // таймфрейм
         $timeframe = '5m';
@@ -163,15 +91,11 @@ class HineyController extends Controller
                 // взять все пары к которым есть информация
                 $precisions = json_decode(Storage::get($this->file), true);
 
-                // взять все торгующиеся пары
+                // берем все торгующиеся рынки
                 $pairs_original = array_keys($precisions);
 
-                // объявляем начальное положение рынков не в позиции
-                $pairs_not_in_position = [];
-
-                // проходимся по всем позициям и смотрим какие рынке находятся не в позиции
-                foreach ($balances['positions'] as $balance)
-                    if ($balance['notional'] == 0) $pairs_not_in_position[] = $balance['symbol'];
+                // берем рынки, которые находятся не в позиции
+                $pairs_not_in_position = $binance_futures->getPairsNotInPosition($balances);
 
                 // пройтись по всем заданным мною рынкам, убедиться, что они существуют
                 foreach ($pairs as $pair)
@@ -275,6 +199,26 @@ class HineyController extends Controller
 
     }
 
+    public function cancelOrderWherePairNotInPosition()
+    {
+
+        // пары
+        $pairs = $this->getPairs();
+
+        // объект для взаимодействия с фьючерсами binance через API
+        $binance_futures = new BinanceFutures();
+
+        // берем текущий баланс, берем все рынке вне позиции, проходимся по всем рынкам, если пара не в позиции и есть открытые ордара - закрыть их
+        if ($balances = $binance_futures->getBalances())
+            if ($pairs_not_in_position = $binance_futures->getPairsNotInPosition($balances))
+                foreach ($pairs as $pair)
+                    if (in_array($pair, $pairs_not_in_position))
+                        if ($open_orders = $binance_futures->getAllOpenOrders($pair))
+                            foreach ($open_orders as $open_order)
+                                $binance_futures->cancelOrder($open_order['orderId'], $open_order['symbol']);
+
+    }
+
     // сохраняет precisions в файл
     public function saveToFileContractsPrecisions()
     {
@@ -293,6 +237,85 @@ class HineyController extends Controller
             Storage::disk($this->disk)->put($this->file, json_encode($precisions ?? []));
 
         }
+
+    }
+
+    private function getPairs(): array
+    {
+
+        return  [
+                '1INCHUSDT',
+                'AAVEUSDT',
+                'ADAUSDT',
+                'ALGOUSDT',
+                'ANKRUSDT',
+                'ARUSDT',
+                'ATOMUSDT',
+                'AUDIOUSDT',
+                'AVAXUSDT',
+                'AXSUSDT',
+                'BATUSDT',
+                'BCHUSDT',
+                'BNBUSDT',
+                'BTCUSDT',
+                'BTTUSDT',
+                'CELOUSDT',
+                'CHZUSDT',
+                'COMPUSDT',
+                'CRVUSDT',
+                'DASHUSDT',
+                'DOGEUSDT',
+                'DOTUSDT',
+                'EGLDUSDT',
+                'ENJUSDT',
+                'ENSUSDT',
+                'EOSUSDT',
+                'ETCUSDT',
+                'ETHUSDT',
+                'FILUSDT',
+                'FTMUSDT',
+                'GALAUSDT',
+                'GRTUSDT',
+                'HBARUSDT',
+                'HNTUSDT',
+                'HOTUSDT',
+                'ICPUSDT',
+                //'ICXUSDT',
+                'IOTXUSDT',
+                'KLAYUSDT',
+                'KSMUSDT',
+                'LINKUSDT',
+                'LPTUSDT',
+                'LRCUSDT',
+                'LTCUSDT',
+                'LUNAUSDT',
+                'MANAUSDT',
+                'MATICUSDT',
+                'MKRUSDT',
+                'NEARUSDT',
+                'NEOUSDT',
+                'OMGUSDT',
+                'QTUMUSDT',
+                'RUNEUSDT',
+                'RVNUSDT',
+                'SANDUSDT',
+                'SCUSDT',
+                'SOLUSDT',
+                'SUSHIUSDT',
+                'THETAUSDT',
+                'TRXUSDT',
+                'UNIUSDT',
+                'VETUSDT',
+                'WAVESUSDT',
+                //'XEMUSDT',
+                'XLMUSDT',
+                'XMRUSDT',
+                'XRPUSDT',
+                'XTZUSDT',
+                'ZECUSDT',
+                'ZENUSDT',
+                'ZILUSDT',
+            ];
 
     }
 
