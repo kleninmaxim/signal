@@ -33,28 +33,35 @@ class HineyController extends Controller
 
         //debug((new BinanceFutures())->createOrder('WAVESUSDT', 'BUY', 'MARKET', 0.5), true);
 
-        //debug((new BinanceFutures())->createOrder('WAVESUSDT', 'SELL', 'STOP_MARKET', stop_price: 10, close_position: 'true'));
+//        debug(
+//            (new BinanceFutures())->createOrder(
+//                'WAVESUSDT',
+//                'SELL',
+//                'STOP_MARKET',
+//                options: [
+//                    'stop_price' => 10,
+//                    'close_position' => 'true'
+//                ]
+//            )
+//        );
 
-        //debug((new BinanceFutures())->createOrder('WAVESUSDT', 'SELL', 'TAKE_PROFIT_MARKET', stop_price: 20, close_position: 'true', workingType: 'MARK_PRICE'));
+//        debug(
+//            (new BinanceFutures())->createOrder(
+//                'WAVESUSDT',
+//                'SELL',
+//                'TAKE_PROFIT_MARKET',
+//                options: [
+//                    'stop_price' => 20,
+//                    'close_position' => 'true',
+//                    'working_type' => 'MARK_PRICE'
+//                ]
+//            )
+//        );
 
         //debug((new BinanceFutures())->createOrder('WAVESUSDT', 'BUY', 'LIMIT', 450, 10));
 
 
         //debug((new BinanceFutures())->getBalances(), true);
-
-/*        $pair = 'BTC/USDT';
-
-        $pair_str = str_replace('/', '', $pair);
-
-        debug(Binance::getCandles($pair_str, '5m'));*/
-
-/*        ErrorLog::create([
-            'title' => 'Can\'t get candles throw api',
-            'message' => json_encode($candles),
-        ]);
-
-        (new Telegram())->send('Pair: ' . $pair . '. Can\'t get candles throw api!!! JSON: ' . json_encode($candles) .  "\n");*/
-
 
     }
 
@@ -165,7 +172,7 @@ class HineyController extends Controller
 
                 // проходимся по всем позициям и смотрим какие рынке находятся не в позиции
                 foreach ($balances['positions'] as $balance)
-                    if ($balance['notional'] == 0 ) $pairs_not_in_position[] = $balance['symbol'];
+                    if ($balance['notional'] == 0) $pairs_not_in_position[] = $balance['symbol'];
 
                 // пройтись по всем заданным мною рынкам, убедиться, что они существуют и не находятся в позиции и переходить к стратегии
                 foreach ($pairs as $pair)
@@ -211,20 +218,26 @@ class HineyController extends Controller
                             // округли все значения в соответсвии с биржей по precisions из файла
                             $strategy->round($position, $precisions[$pair]);
 
-                            // поставить ордер
-                            $order = $binance_futures->createOrder($pair, $position['position'], 'MARKET', $position['amount']);
-
                             // если ордер поставился
-                            if (isset($order['orderId']) && isset($order['symbol'])) {
+                            if (
+                                $order = $binance_futures->createOrder(
+                                    $pair,
+                                    $position['position'],
+                                    'MARKET',
+                                    $position['amount']
+                                )
+                            ) {
 
                                 // поставить стоп лосс
                                 $stop_market = $binance_futures->createOrder(
                                     $pair,
                                     $strategy->reversePosition($position['position']),
                                     'STOP_MARKET',
-                                    stop_price: $position['stop_loss'],
-                                    close_position: 'true',
-                                    workingType: 'MARK_PRICE'
+                                    options: [
+                                        'stop_price' => $position['stop_loss'],
+                                        'close_position' => 'true',
+                                        'working_type' => 'MARK_PRICE',
+                                    ]
                                 );
 
                                 // поставить тейк профит
@@ -232,16 +245,18 @@ class HineyController extends Controller
                                     $pair,
                                     $strategy->reversePosition($position['position']),
                                     'TAKE_PROFIT_MARKET',
-                                    stop_price: $position['take_profit'],
-                                    close_position: 'true',
-                                    workingType: 'MARK_PRICE'
+                                    options: [
+                                        'stop_price' => $position['take_profit'],
+                                        'close_position' => 'true',
+                                        'working_type' => 'MARK_PRICE',
+                                    ]
                                 );
 
                                 if (!$stop_market)
-                                    $telegram->send($pair . ' Stop loss is not set!!! JSON: ' . $stop_market .  "\n"); // отправляет сообщение в телеграм о том, что стоп лосс не выставлен
+                                    $telegram->send($pair . ' Stop loss is not set!!!' . "\n"); // отправляет сообщение в телеграм о том, что стоп лосс не выставлен
 
                                 if (!$take_profit)
-                                    $telegram->send($pair . ' Take Profit is not set!!! JSON: ' . $take_profit .  "\n"); // отправляет сообщение в телеграм о том, что тейк профит не выставлен
+                                    $telegram->send($pair . ' Take Profit is not set!!! JSON: ' . "\n"); // отправляет сообщение в телеграм о том, что тейк профит не выставлен
 
                                 // отправляет сообщение в телеграм о нашей позиции
                                 $telegram->send(
@@ -298,100 +313,100 @@ class HineyController extends Controller
 
     }
 
-/*
+    /*
 
-LIMIT
+    LIMIT
 
-Array
-(
-    [orderId] => 4887710177
-    [symbol] => WAVESUSDT
-    [status] => NEW
-    [clientOrderId] => QRZTARXf9vKQd1iwzGyqUK
-    [price] => 10
-    [avgPrice] => 0.00000
-    [origQty] => 10
-    [executedQty] => 0
-    [cumQty] => 0
-    [cumQuote] => 0
-    [timeInForce] => GTC
-    [type] => LIMIT
-    [reduceOnly] =>
-    [closePosition] =>
-    [side] => BUY
-    [positionSide] => BOTH
-    [stopPrice] => 0
-    [workingType] => CONTRACT_PRICE
-    [priceProtect] =>
-    [origType] => LIMIT
-    [updateTime] => 1640719229063
-)
-*/
+    Array
+    (
+        [orderId] => 4887710177
+        [symbol] => WAVESUSDT
+        [status] => NEW
+        [clientOrderId] => QRZTARXf9vKQd1iwzGyqUK
+        [price] => 10
+        [avgPrice] => 0.00000
+        [origQty] => 10
+        [executedQty] => 0
+        [cumQty] => 0
+        [cumQuote] => 0
+        [timeInForce] => GTC
+        [type] => LIMIT
+        [reduceOnly] =>
+        [closePosition] =>
+        [side] => BUY
+        [positionSide] => BOTH
+        [stopPrice] => 0
+        [working_type] => CONTRACT_PRICE
+        [priceProtect] =>
+        [origType] => LIMIT
+        [updateTime] => 1640719229063
+    )
+    */
 
-/*
+    /*
 
-GET ORDER STATUS
+    GET ORDER STATUS
 
-Array
-(
-    [orderId] => 4887710177
-    [symbol] => WAVESUSDT
-    [status] => NEW
-    [clientOrderId] => QRZTARXf9vKQd1iwzGyqUK
-    [price] => 10
-    [avgPrice] => 0.00000
-    [origQty] => 10
-    [executedQty] => 0
-    [cumQuote] => 0
-    [timeInForce] => GTC
-    [type] => LIMIT
-    [reduceOnly] =>
-    [closePosition] =>
-    [side] => BUY
-    [positionSide] => BOTH
-    [stopPrice] => 0
-    [workingType] => CONTRACT_PRICE
-    [priceProtect] =>
-    [origType] => LIMIT
-    [time] => 1640719229063
-    [updateTime] => 1640719229063
-)
-*/
+    Array
+    (
+        [orderId] => 4887710177
+        [symbol] => WAVESUSDT
+        [status] => NEW
+        [clientOrderId] => QRZTARXf9vKQd1iwzGyqUK
+        [price] => 10
+        [avgPrice] => 0.00000
+        [origQty] => 10
+        [executedQty] => 0
+        [cumQuote] => 0
+        [timeInForce] => GTC
+        [type] => LIMIT
+        [reduceOnly] =>
+        [closePosition] =>
+        [side] => BUY
+        [positionSide] => BOTH
+        [stopPrice] => 0
+        [working_type] => CONTRACT_PRICE
+        [priceProtect] =>
+        [origType] => LIMIT
+        [time] => 1640719229063
+        [updateTime] => 1640719229063
+    )
+    */
 
-/*
+    /*
 
-CANCEL ORDER
+    CANCEL ORDER
 
-Array
-(
-    [orderId] => 4887710177
-    [symbol] => WAVESUSDT
-    [status] => CANCELED
-    [clientOrderId] => QRZTARXf9vKQd1iwzGyqUK
-    [price] => 10
-    [avgPrice] => 0.00000
-    [origQty] => 10
-    [executedQty] => 0
-    [cumQty] => 0
-    [cumQuote] => 0
-    [timeInForce] => GTC
-    [type] => LIMIT
-    [reduceOnly] =>
-    [closePosition] =>
-    [side] => BUY
-    [positionSide] => BOTH
-    [stopPrice] => 0
-    [workingType] => CONTRACT_PRICE
-    [priceProtect] =>
-    [origType] => LIMIT
-    [updateTime] => 1640719301118
-)
+    Array
+    (
+        [orderId] => 4887710177
+        [symbol] => WAVESUSDT
+        [status] => CANCELED
+        [clientOrderId] => QRZTARXf9vKQd1iwzGyqUK
+        [price] => 10
+        [avgPrice] => 0.00000
+        [origQty] => 10
+        [executedQty] => 0
+        [cumQty] => 0
+        [cumQuote] => 0
+        [timeInForce] => GTC
+        [type] => LIMIT
+        [reduceOnly] =>
+        [closePosition] =>
+        [side] => BUY
+        [positionSide] => BOTH
+        [stopPrice] => 0
+        [working_type] => CONTRACT_PRICE
+        [priceProtect] =>
+        [origType] => LIMIT
+        [updateTime] => 1640719301118
+    )
 
-Array
-(
-    [code] => -2011
-    [msg] => Unknown order sent.
-)
-*/
+    Array
+    (
+        [code] => -2011
+        [msg] => Unknown order sent.
+    )
+    */
 
 }

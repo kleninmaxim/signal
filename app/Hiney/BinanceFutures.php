@@ -99,47 +99,78 @@ class BinanceFutures
         [updateTime] => 1640719229063
     )
     */
-    public function createOrder($symbol, $side, $order_type, $quantity = null, $price = null, $stop_price = null, $close_position = null, $workingType = null): array|bool
+    public function createOrder(
+        string $symbol,
+        string $side,
+        string $order_type,
+        float $quantity = null,
+        float $price = null,
+        array $options = []
+    ): array|bool
     {
 
-        $query = http_build_query([
-            'timestamp' => $this->getTimestamp(),
-            'symbol' => $symbol,
-            'type' => $order_type,
-            'side' => $side
-        ]);
+        for ($i = 0; $i < 5; $i++) {
 
-        if (!empty($quantity))
-            $query .= '&quantity=' . $quantity;
+            $query = http_build_query([
+                'timestamp' => $this->getTimestamp(),
+                'symbol' => $symbol,
+                'type' => $order_type,
+                'side' => $side
+            ]);
 
-        if (!empty($price))
-            $query .= '&price=' . $price;
+            if (!empty($quantity))
+                $query .= '&quantity=' . $quantity;
 
-        if ($order_type == 'LIMIT' || $order_type == 'STOP' || $order_type == 'TAKE_PROFIT')
-            $query .= '&timeInForce=' . 'GTC';
+            if (!empty($price))
+                $query .= '&price=' . $price;
 
-        if (!empty($stop_price))
-            $query .= '&stopPrice=' . $stop_price;
+            if (in_array($order_type, ['LIMIT', 'STOP', 'TAKE_PROFIT']))
+                $query .= '&timeInForce=' . 'GTC';
 
-        if (!empty($close_position))
-            $query .= '&closePosition=' . $close_position;
+            if (isset($options['stop_price']))
+                $query .= '&stopPrice=' . $options['stop_price'];
 
-        if ($order_type == 'STOP_MARKET' || $order_type == 'TAKE_PROFIT_MARKET')
-            $query .= '&workingType=' . $workingType;
+            if (isset($options['close_position']))
+                $query .= '&closePosition=' . $options['close_position'];
 
-        $query .= '&signature=' . $this->generateSignatureWithQuery($query);
+            if (isset($options['working_type']))
+                $query .= '&workingType=' . $options['working_type'];
 
-        $create_order = Http::withHeaders([
-            'X-MBX-APIKEY' => $this->public_api,
-            'Content-Type' => 'application/x-www-form-urlencoded',
-        ])->withBody($query, 'application/json')->post(
-            $this->base_url . '/fapi/v1/order'
-        )->collect()->toArray();
+            $query .= '&signature=' . $this->generateSignatureWithQuery($query);
 
-        if (isset($create_order['orderId']) && isset($create_order['symbol']))
-            return $create_order;
+            $create_order = Http::withHeaders([
+                'X-MBX-APIKEY' => $this->public_api,
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ])->withBody(
+                $query,
+                'application/json'
+            )->post(
+                $this->base_url . '/fapi/v1/order'
+            )->collect()->toArray();
 
-        return json_encode($create_order);
+
+            if (
+                !isset($create_order['orderId']) ||
+                !isset($create_order['symbol'])
+            ) {
+
+                usleep(100000);
+
+                ErrorLog::create([
+                    'title' => 'Can\'t create order!!! Query is: ' . $query . '. Tries: ' . $i,
+                    'message' => json_encode($create_order),
+                ]);
+
+                $this->telegram->send(
+                    'Can\'t create order!!! Query is: ' . $query . '. Tries: ' . $i . '. JSON: ' . json_encode($create_order) . "\n"
+                );
+
+            } else
+                return $create_order;
+
+        }
+
+        return false;
 
     }
 
