@@ -193,19 +193,9 @@ class HineyController extends Controller
 
                                 if ((is_array($open_orders) && isset($open_orders[0]['orderId']) && isset($open_orders[0]['symbol']))) {
 
-                                    foreach ($open_orders as $open_order) {
-
-                                        $cancel_order = $binance_futures->cancelOrder($open_order['orderId'], $open_order['symbol']);
-
-                                        if (!isset($cancel_order['orderId']) || !isset($cancel_order['status']) || $cancel_order['status'] != 'CANCELED') {
-
-                                            $telegram->send($pair . ' Order can\'t be closed!!! JSON: ' . json_encode($cancel_order) . "\n"); // отправляет сообщение в телеграм об ошибке отмены ордера
-
-                                            continue 2;
-
-                                        }
-
-                                    }
+                                    // закрываем ненужные открытые ордера
+                                    foreach ($open_orders as $open_order)
+                                        $binance_futures->cancelOrder($open_order['orderId'], $open_order['symbol']);
 
                                 } else
                                     $telegram->send($pair . ' For some reason order is not created!!! JSON: ' . $open_orders . "\n"); // отправляет сообщение в телеграм об ошибке получения открытых ордеров

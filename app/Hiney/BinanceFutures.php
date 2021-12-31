@@ -206,21 +206,50 @@ class BinanceFutures
         [msg] => Unknown order sent.
     )
 */
-    public function cancelOrder($order_id, $symbol): array
+    public function cancelOrder($order_id, $symbol): array|bool
     {
-        $query = http_build_query([
-            'timestamp' => $this->getTimestamp(),
-            'orderId' => $order_id,
-            'symbol' => $symbol
-        ]);
 
-        return Http::withHeaders([
-            'X-MBX-APIKEY' => $this->public_api,
-            'Content-Type' => 'application/x-www-form-urlencoded',
-        ])->withBody(
-            $query . '&signature=' . $this->generateSignatureWithQuery($query),
-            'application/json'
-        )->delete($this->base_url . '/fapi/v1/order')->collect()->toArray();
+        for ($i = 0; $i < 5; $i++) {
+
+            $query = http_build_query([
+                'timestamp' => $this->getTimestamp(),
+                'orderId' => $order_id,
+                'symbol' => $symbol
+            ]);
+
+            $cancel_order = Http::withHeaders([
+                'X-MBX-APIKEY' => $this->public_api,
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ])->withBody(
+                $query . '&signature=' . $this->generateSignatureWithQuery($query),
+                'application/json'
+            )->delete(
+                $this->base_url . '/fapi/v1/order'
+            )->collect()->toArray();
+
+            if (
+                !isset($cancel_order['orderId']) ||
+                !isset($cancel_order['symbol']) ||
+                !isset($cancel_order['status'])
+            ) {
+
+                usleep(100000);
+
+                ErrorLog::create([
+                    'title' => 'Can\'t cancel order!!! Query is: ' . $query . '. Tries: ' . $i,
+                    'message' => json_encode($cancel_order),
+                ]);
+
+                $this->telegram->send(
+                    'Can\'t cancel order!!! Query is: ' . $query . '. Tries: ' . $i . '. JSON: ' . json_encode($cancel_order) . "\n"
+                );
+
+            } else
+                return $cancel_order;
+
+        }
+
+        return false;
 
     }
 
@@ -360,7 +389,7 @@ class BinanceFutures
     private function generateSignatureWithQuery($query): string
     {
 
-        return \hash_hmac('sha256', $query, $this->private_api);
+        return hash_hmac('sha256', $query, $this->private_api);
 
     }
 
