@@ -185,23 +185,12 @@ class HineyController extends Controller
                         // запустить стратегию
                         if ($position = $strategy->run()) {
 
-                            // Отменить текущие открытые ордераъ
-                            $open_orders = $binance_futures->getAllOpenOrders($pair);
+                            // закрываем ненужные открытые ордера
+                            if ($open_orders = $binance_futures->getAllOpenOrders($pair))
+                                foreach ($open_orders as $open_order)
+                                    $binance_futures->cancelOrder($open_order['orderId'], $open_order['symbol']);
 
-                            if (!empty($open_orders)) {
-
-                                if ((is_array($open_orders) && isset($open_orders[0]['orderId']) && isset($open_orders[0]['symbol']))) {
-
-                                    // закрываем ненужные открытые ордера
-                                    foreach ($open_orders as $open_order)
-                                        $binance_futures->cancelOrder($open_order['orderId'], $open_order['symbol']);
-
-                                } else
-                                    $telegram->send($pair . ' For some reason order is not created!!! JSON: ' . $open_orders . "\n"); // отправляет сообщение в телеграм об ошибке получения открытых ордеров
-
-                            }
-
-                            // посчитай amount, который нужно для открытия позиции
+                            // рассчет amount, который нужно для открытия позиции
                             $position['amount'] = $strategy->countAmount();
 
                             // округли все значения в соответсвии с биржей по precisions из файла

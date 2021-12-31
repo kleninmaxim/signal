@@ -330,26 +330,43 @@ class BinanceFutures
     public function getAllOpenOrders($symbol): array|bool
     {
 
-        $timestamp = $this->getTimestamp();
+        for ($i = 0; $i < 5; $i++) {
 
-        $query = http_build_query([
-            'timestamp' => $timestamp,
-            'symbol' => $symbol,
-        ]);
+            $query = http_build_query([
+                'timestamp' => $this->getTimestamp(),
+                'symbol' => $symbol,
+            ]);
 
-        $open_orders = Http::withHeaders([
-            'X-MBX-APIKEY' => $this->public_api,
-            'Content-Type' => 'application/x-www-form-urlencoded',
-        ])->get($this->base_url . '/fapi/v1/openOrders', [
-            'timestamp' => $timestamp,
-            'symbol' => $symbol,
-            'signature' => $this->generateSignatureWithQuery($query)
-        ])->collect()->toArray();
+            $open_orders = Http::withHeaders([
+                'X-MBX-APIKEY' => $this->public_api,
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ])->get(
+                $this->base_url . '/fapi/v1/openOrders',
+                $query . '&signature=' . $this->generateSignatureWithQuery($query)
+            )->collect()->toArray();
 
-        if ((is_array($open_orders) && isset($open_orders[0]['orderId']) && isset($open_orders[0]['symbol'])) || empty($open_orders))
-            return $open_orders;
+            if (
+                isset($open_orders['code']) ||
+                isset($open_orders['msg'])
+            ) {
 
-        return json_encode($open_orders);
+                usleep(100000);
+
+                ErrorLog::create([
+                    'title' => 'Can\'t get all open order for pair:' . $symbol . '. Query is: ' . $query . '. Tries: ' . $i,
+                    'message' => json_encode($open_orders),
+                ]);
+
+                $this->telegram->send(
+                    'Can\'t get all open order for pair:' . $symbol . '. Query is: ' . $query . '. Tries: ' . $i . '. JSON: ' . json_encode($open_orders) . "\n"
+                );
+
+            } else
+                return $open_orders;
+
+        }
+
+        return false;
 
     }
 
