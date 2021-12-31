@@ -393,31 +393,47 @@ class BinanceFutures
         )
     )
     */
-    public function getPositionInformation($symbol = null): array
+    public function getPositionInformation($symbol = null): array|bool
     {
+        for ($i = 0; $i < 5; $i++) {
 
-        $timestamp = $this->getTimestamp();
+            $query = http_build_query([
+                'timestamp' => $this->getTimestamp()
+            ]);
 
-        $query = 'timestamp=' . $timestamp;
+            if (!empty($symbol))
+                $query .= '&symbol=' . $symbol;
 
-        if (!empty($symbol)) {
-            $query .= '&symbol=' . $symbol;
-            $body = [
-                'timestamp' => $timestamp,
-                'symbol' => $symbol,
-                'signature' => $this->generateSignatureWithQuery($query)
-            ];
-        } else {
-            $body = [
-                'timestamp' => $timestamp,
-                'signature' => $this->generateSignatureWithQuery($query)
-            ];
+            $positions = Http::withHeaders([
+                'X-MBX-APIKEY' => $this->public_api,
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ])->get(
+                $this->base_url . '/fapi/v2/positionRisk',
+                $query . '&signature=' . $this->generateSignatureWithQuery($query)
+            )->collect()->toArray();
+
+            if (
+                !isset($positions[0]['symbol']) ||
+                !isset($positions[0]['notional'])
+            ) {
+
+                usleep(100000);
+
+                ErrorLog::create([
+                    'title' => 'Can\'t get position information!!! Query is: ' . $query . '. Tries: ' . $i,
+                    'message' => json_encode($positions),
+                ]);
+
+                $this->telegram->send(
+                    'Can\'t get position information!!! Query is: ' . $query . '. Tries: ' . $i . '. JSON: ' . json_encode($positions) . "\n"
+                );
+
+            } else
+                return $positions;
+
         }
 
-        return Http::withHeaders([
-            'X-MBX-APIKEY' => $this->public_api,
-            'Content-Type' => 'application/x-www-form-urlencoded',
-        ])->get($this->base_url . '/fapi/v2/positionRisk', $body)->collect()->toArray();
+        return false;
 
     }
 

@@ -2,9 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-use \jamesRUS52\TinkoffInvest\TIClient;
-use \jamesRUS52\TinkoffInvest\TISiteEnum;
-use \jamesRUS52\TinkoffInvest\TIException;
 
 function debug($arr, $die = false)
 {
@@ -48,6 +45,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/hiney/saveToFileContractsPrecisions', [\App\Http\Controllers\HineyController::class, 'saveToFileContractsPrecisions']);
 
     Route::get('/hiney/hineyStrategy', [\App\Http\Controllers\HineyController::class, 'hineyStrategy']);
+
+    Route::get('/hiney/statisticBalance', [\App\Http\Controllers\HineyController::class, 'statisticBalance']);
 
 
     Route::get('/binance/loadCandles', [\App\Http\Controllers\BinanceController::class, 'loadCandles']);
