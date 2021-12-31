@@ -19,8 +19,11 @@ class BinanceFutures
     {
 
         $this->public_api = config('api.public_api');
+
         $this->private_api = config('api.private_api');
+
         $this->base_url = 'https://fapi.binance.com';
+
         $this->telegram = new Telegram();
 
     }
@@ -279,26 +282,48 @@ class BinanceFutures
         [updateTime] => 1640719229063
     )
 */
-    public function getOrderStatus($order_id, $symbol): array
+    public function getOrderStatus($order_id, $symbol): array|bool
     {
 
-        $timestamp = $this->getTimestamp();
+        for ($i = 0; $i < 5; $i++) {
 
-        $query = http_build_query([
-            'timestamp' => $timestamp,
-            'orderId' => $order_id,
-            'symbol' => $symbol
-        ]);
+            $query = http_build_query([
+                'timestamp' => $this->getTimestamp(),
+                'orderId' => $order_id,
+                'symbol' => $symbol
+            ]);
 
-        return Http::withHeaders([
-            'X-MBX-APIKEY' => $this->public_api,
-            'Content-Type' => 'application/x-www-form-urlencoded',
-        ])->get($this->base_url . '/fapi/v1/order', [
-            'timestamp' => $timestamp,
-            'orderId' => $order_id,
-            'symbol' => $symbol,
-            'signature' => $this->generateSignatureWithQuery($query)
-        ])->collect()->toArray();
+            $order_status = Http::withHeaders([
+                'X-MBX-APIKEY' => $this->public_api,
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ])->get(
+                $this->base_url . '/fapi/v1/order',
+                $query . '&signature=' . $this->generateSignatureWithQuery($query)
+            )->collect()->toArray();
+
+            if (
+                !isset($order_status['orderId']) ||
+                !isset($order_status['symbol']) ||
+                !isset($order_status['status'])
+            ) {
+
+                usleep(100000);
+
+                ErrorLog::create([
+                    'title' => 'Can\'t get order status!!! Query is: ' . $query . '. Tries: ' . $i,
+                    'message' => json_encode($order_status),
+                ]);
+
+                $this->telegram->send(
+                    'Can\'t get order status!!! Query is: ' . $query . '. Tries: ' . $i . '. JSON: ' . json_encode($order_status) . "\n"
+                );
+
+            } else
+                return $order_status;
+
+        }
+
+        return false;
 
     }
 

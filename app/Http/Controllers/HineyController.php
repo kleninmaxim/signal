@@ -6,7 +6,6 @@ use App\Hiney\Binance;
 use App\Hiney\BinanceFutures;
 use App\Hiney\Src\Telegram;
 use App\Hiney\Strategies\TheHineyMoneyFlow;
-use App\Models\ErrorLog;
 use App\Models\Statistic\Balance;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
