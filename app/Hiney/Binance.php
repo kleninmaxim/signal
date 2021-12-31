@@ -3,6 +3,7 @@
 namespace App\Hiney;
 
 use App\Hiney\Src\Telegram;
+use App\Models\ErrorLog;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 
@@ -12,39 +13,26 @@ class Binance
     public static function getCandles($pair, $timeframe, $limit = 100, $removeCurrent = false): array
     {
 
-        $candles = self::getCandlesApi($pair, $timeframe, $limit);
+        if ($candles_api = self::getCandlesApi($pair, $timeframe, $limit)) {
 
-        while(isset($candles['code']) && isset($candles['msg'])) {
+            foreach ($candles_api as $key => $candle)
+                $candles[$key] = [
+                    'open' => $candle[1],
+                    'high' => $candle[2],
+                    'low' => $candle[3],
+                    'close' => $candle[4],
+                    'volume' => $candle[5],
+                    'time_start' => Carbon::createFromTimestamp($candle[0] / 1000)->toDateTimeString()
+                ];
 
-            usleep(100000);
+            if ($removeCurrent) {
 
-            $telegram = new Telegram(
-                config('api.telegram_token_binance'),
-                config('api.telegram_user_id')
-            );
+                $current_candle = array_pop($candles);
 
-            $telegram->send('CAN NOT GET CANDLES!!!' . json_encode($candles));
+                if ($current_candle['time_start'] < self::maxCandleTimeStart($timeframe))
+                    $candles[] = $current_candle;
 
-            $candles = self::getCandlesApi($pair, $timeframe, $limit);
-
-        }
-
-        foreach ($candles as $key => $candle)
-            $candles[$key] = [
-                'open' => $candle[1],
-                'high' => $candle[2],
-                'low' => $candle[3],
-                'close' => $candle[4],
-                'volume' => $candle[5],
-                'time_start' => Carbon::createFromTimestamp($candle[0] / 1000)->toDateTimeString()
-            ];
-
-        if ($removeCurrent == true) {
-
-            $current_candle = array_pop($candles);
-
-            if ($current_candle['time_start'] < self::maxCandleTimeStart($timeframe))
-                $candles[] = $current_candle;
+            }
 
         }
 
@@ -81,14 +69,44 @@ class Binance
 
     }
 
-    private static function getCandlesApi($pair, $timeframe, $limit): array
+    private static function getCandlesApi($pair, $timeframe, $limit): array|bool
     {
 
-        return Http::get('https://api.binance.com/api/v3/klines', [
-            'symbol' => $pair,
-            'interval' => $timeframe,
-            'limit' => $limit,
-        ])->collect()->toArray();
+        for ($i = 0; $i < 5; $i++) {
+
+            $candles = Http::get('https://api.binance.com/api/v3/klines', [
+                'symbol' => $pair,
+                'interval' => $timeframe,
+                'limit' => $limit,
+            ])->collect()->toArray();
+
+            if (
+                isset($candles[0][0]) &&
+                isset($candles[0][1]) &&
+                isset($candles[0][2]) &&
+                isset($candles[0][3]) &&
+                isset($candles[0][4]) &&
+                isset($candles[0][5]))
+            {
+
+                return $candles;
+
+            } else {
+
+                usleep(100000);
+
+                ErrorLog::create([
+                    'title' => 'Can\'t get candles throw api',
+                    'message' => json_encode($candles),
+                ]);
+
+                (new Telegram())->send('Pair: ' . $pair . '. Can\'t get candles throw api!!! JSON: ' . json_encode($candles) .  "\n");
+
+            }
+
+        }
+
+        return false;
 
     }
 
