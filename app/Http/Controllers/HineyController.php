@@ -6,6 +6,7 @@ use App\Hiney\Binance;
 use App\Hiney\BinanceFutures;
 use App\Hiney\Src\Telegram;
 use App\Hiney\Strategies\TheHineyMoneyFlow;
+use App\Models\ErrorLog;
 use App\Models\Statistic\Balance;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
@@ -46,6 +47,14 @@ class HineyController extends Controller
         $pair_str = str_replace('/', '', $pair);
 
         debug(Binance::getCandles($pair_str, '5m'));*/
+
+/*        ErrorLog::create([
+            'title' => 'Can\'t get candles throw api',
+            'message' => json_encode($candles),
+        ]);
+
+        (new Telegram())->send('Pair: ' . $pair . '. Can\'t get candles throw api!!! JSON: ' . json_encode($candles) .  "\n");*/
+
 
     }
 
@@ -137,27 +146,13 @@ class HineyController extends Controller
         if (Storage::disk($this->disk)->exists($this->file)) {
 
             // создание телеграм для отправки сообщения
-            $telegram = new Telegram(
-                config('api.telegram_token_binance'),
-                config('api.telegram_user_id')
-            );
+            $telegram = new Telegram();
 
             // объект для взаимодействия с фьючерсами binance через API
             $binance_futures = new BinanceFutures();
 
             // берем текущий баланс
-            $balances = $binance_futures->getBalances();
-
-            for ($i = 0; $i <= 5; $i++)
-                if (!isset($balances['totalWalletBalance']) || !isset($balances['assets']) || !isset($balances['positions'])) {
-                    usleep(100000);
-                    $telegram->send('Can\'t get balance!!! Message: ' . $balances . "\n"); // отправляет сообщение в телеграм о непоступлении баланса
-                    $balances = $binance_futures->getBalances();
-                } else
-                    break;
-
-            // если баланс пришел корректно
-            if (isset($balances['totalWalletBalance']) && isset($balances['assets']) && isset($balances['positions'])) {
+            if ($balances = $binance_futures->getBalances()) {
 
                 // взять все пары к которым есть информация
                 $precisions = json_decode(Storage::get($this->file), true);
@@ -182,10 +177,7 @@ class HineyController extends Controller
                         );
 
                         // запустить стратегию
-                        $position = $strategy->run();
-
-                        // если появилась возможность открыть позицию
-                        if ($position) {
+                        if ($position = $strategy->run()) {
 
                             // Отменить текущие открытые ордераъ
                             $open_orders = $binance_futures->getAllOpenOrders($pair);
@@ -274,27 +266,14 @@ class HineyController extends Controller
     public function statisticBalance()
     {
 
-        for ($i = 0; $i < 5; $i++) {
-
-            $balances = (new BinanceFutures())->getBalances();
-
-            if (isset($balances['totalWalletBalance']) && isset($balances['assets']) && isset($balances['positions'])) {
-
-                Balance::create([
-                    'total_wallet_balance' => $balances['totalWalletBalance'],
-                    'total_unrealized_profit' => $balances['totalUnrealizedProfit'],
-                    'total_margin_balance' => $balances['totalMarginBalance'],
-                    'available_balance' => $balances['availableBalance'],
-                    'created_at' => Carbon::now()->format('Y-m-d H:00:00')
-                ]);
-
-                break;
-
-            }
-
-            usleep(100000);
-
-        }
+        if ($balances = (new BinanceFutures())->getBalances())
+            Balance::create([
+                'total_wallet_balance' => $balances['totalWalletBalance'],
+                'total_unrealized_profit' => $balances['totalUnrealizedProfit'],
+                'total_margin_balance' => $balances['totalMarginBalance'],
+                'available_balance' => $balances['availableBalance'],
+                'created_at' => Carbon::now()->format('Y-m-d H:00:00')
+            ]);
 
     }
 

@@ -2,6 +2,8 @@
 
 namespace App\Hiney;
 
+use App\Hiney\Src\Telegram;
+use App\Models\ErrorLog;
 use Illuminate\Support\Facades\Http;
 use JetBrains\PhpStorm\Pure;
 
@@ -11,6 +13,7 @@ class BinanceFutures
     private string $base_url;
     private string $public_api;
     private string $private_api;
+    private Telegram $telegram;
 
     public function __construct()
     {
@@ -18,6 +21,7 @@ class BinanceFutures
         $this->public_api = config('api.public_api');
         $this->private_api = config('api.private_api');
         $this->base_url = 'https://fapi.binance.com';
+        $this->telegram = new Telegram();
 
     }
 
@@ -31,20 +35,41 @@ class BinanceFutures
     public function getBalances(): array|bool
     {
 
-        $balances = Http::withHeaders([
-            'X-MBX-APIKEY' => $this->public_api
-        ])->get(
-            $this->base_url . '/fapi/v1/account',
-            [
-                'timestamp' => $this->getTimestamp(),
-                'signature' => $this->generateSignature()
-            ]
-        )->collect()->toArray();
+        for ($i = 0; $i < 5; $i++) {
 
-        if (isset($balances['totalWalletBalance']) && isset($balances['assets']) && isset($balances['positions']))
-            return $balances;
+            $balances = Http::withHeaders([
+                'X-MBX-APIKEY' => $this->public_api
+            ])->get(
+                $this->base_url . '/fapi/v1/account',
+                [
+                    'timestamp' => $this->getTimestamp(),
+                    'signature' => $this->generateSignature()
+                ]
+            )->collect()->toArray();
 
-        return json_encode($balances);
+            if (
+                !isset($balances['totalWalletBalance']) ||
+                !isset($balances['assets']) ||
+                !isset($balances['positions'])
+            ) {
+
+                usleep(100000);
+
+                ErrorLog::create([
+                    'title' => 'Can\'t get balances throw api. Tries: ' . $i,
+                    'message' => json_encode($balances),
+                ]);
+
+                $this->telegram->send(
+                    'Can\'t get balances throw api!!! Tries: ' . $i . '. JSON: ' . json_encode($balances) . "\n"
+                );
+
+            } else
+                return $balances;
+
+        }
+
+        return false;
 
     }
 
