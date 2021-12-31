@@ -302,14 +302,20 @@ class HineyController extends Controller
     public function saveToFileContractsPrecisions()
     {
 
-        foreach ((new BinanceFutures())->getContracts()['symbols'] as $contract)
-            if ($contract['contractType'] == 'PERPETUAL' && str_contains($contract['symbol'], 'USDT'))
-                $precisions[$contract['symbol']] = [
-                    'amount_precision' => $contract['quantityPrecision'],
-                    'price_precision' => $contract['pricePrecision'],
-                ];
+        $symbols = (new BinanceFutures())->getContracts()['symbols'];
 
-        Storage::disk($this->disk)->put($this->file, json_encode($precisions ?? []));
+        if (isset($symbols[0]['symbol'])) {
+
+            foreach ($symbols as $contract)
+                if ($contract['contractType'] == 'PERPETUAL' && str_contains($contract['symbol'], 'USDT'))
+                    $precisions[$contract['symbol']] = [
+                        'amount_precision' => $contract['quantityPrecision'],
+                        'price_precision' => $contract['pricePrecision'],
+                    ];
+
+            Storage::disk($this->disk)->put($this->file, json_encode($precisions ?? []));
+
+        }
 
     }
 
