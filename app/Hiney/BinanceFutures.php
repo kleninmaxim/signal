@@ -5,7 +5,6 @@ namespace App\Hiney;
 use App\Hiney\Src\Telegram;
 use App\Models\ErrorLog;
 use Illuminate\Support\Facades\Http;
-use JetBrains\PhpStorm\Pure;
 
 class BinanceFutures
 {
@@ -40,14 +39,16 @@ class BinanceFutures
 
         for ($i = 0; $i < 5; $i++) {
 
+            $query = http_build_query([
+                'timestamp' => $this->getTimestamp()
+            ]);
+
             $balances = Http::withHeaders([
-                'X-MBX-APIKEY' => $this->public_api
+                'X-MBX-APIKEY' => $this->public_api,
+                'Content-Type' => 'application/x-www-form-urlencoded',
             ])->get(
                 $this->base_url . '/fapi/v1/account',
-                [
-                    'timestamp' => $this->getTimestamp(),
-                    'signature' => $this->generateSignature()
-                ]
+                $query . '&signature=' . $this->generateSignature($query)
             )->collect()->toArray();
 
             if (
@@ -139,7 +140,7 @@ class BinanceFutures
             if (isset($options['working_type']))
                 $query .= '&workingType=' . $options['working_type'];
 
-            $query .= '&signature=' . $this->generateSignatureWithQuery($query);
+            $query .= '&signature=' . $this->generateSignature($query);
 
             $create_order = Http::withHeaders([
                 'X-MBX-APIKEY' => $this->public_api,
@@ -224,7 +225,7 @@ class BinanceFutures
                 'X-MBX-APIKEY' => $this->public_api,
                 'Content-Type' => 'application/x-www-form-urlencoded',
             ])->withBody(
-                $query . '&signature=' . $this->generateSignatureWithQuery($query),
+                $query . '&signature=' . $this->generateSignature($query),
                 'application/json'
             )->delete(
                 $this->base_url . '/fapi/v1/order'
@@ -298,7 +299,7 @@ class BinanceFutures
                 'Content-Type' => 'application/x-www-form-urlencoded',
             ])->get(
                 $this->base_url . '/fapi/v1/order',
-                $query . '&signature=' . $this->generateSignatureWithQuery($query)
+                $query . '&signature=' . $this->generateSignature($query)
             )->collect()->toArray();
 
             if (
@@ -342,7 +343,7 @@ class BinanceFutures
                 'Content-Type' => 'application/x-www-form-urlencoded',
             ])->get(
                 $this->base_url . '/fapi/v1/openOrders',
-                $query . '&signature=' . $this->generateSignatureWithQuery($query)
+                $query . '&signature=' . $this->generateSignature($query)
             )->collect()->toArray();
 
             if (
@@ -409,7 +410,7 @@ class BinanceFutures
                 'Content-Type' => 'application/x-www-form-urlencoded',
             ])->get(
                 $this->base_url . '/fapi/v2/positionRisk',
-                $query . '&signature=' . $this->generateSignatureWithQuery($query)
+                $query . '&signature=' . $this->generateSignature($query)
             )->collect()->toArray();
 
             if (
@@ -447,14 +448,7 @@ class BinanceFutures
 
     }
 
-    #[Pure] private function generateSignature(): bool|string
-    {
-
-        return hash_hmac('sha256', 'timestamp=' . $this->getTimestamp(), $this->private_api);
-
-    }
-
-    private function generateSignatureWithQuery($query): string
+    private function generateSignature($query): string
     {
 
         return hash_hmac('sha256', $query, $this->private_api);
