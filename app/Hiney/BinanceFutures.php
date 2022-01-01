@@ -461,9 +461,6 @@ class BinanceFutures
 
         $available_balance_to_wallet_balance = Math::percentage($balances['availableBalance'], $balances['totalWalletBalance']);
 
-        debug($unrealized_profit_to_wallet_balance);
-        debug($available_balance_to_wallet_balance);
-
         if (
             $unrealized_profit_to_wallet_balance >= $unrealized_profit_draw_down &&
             $available_balance_to_wallet_balance >= $available_balance_draw_down
