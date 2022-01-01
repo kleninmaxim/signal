@@ -12,4 +12,13 @@ class Math
 
     }
 
+    public static function percentage($x, $y): float
+    {
+
+        if ($y == 0) return 0;
+
+        return round($x / $y * 100, 2);
+
+    }
+
 }

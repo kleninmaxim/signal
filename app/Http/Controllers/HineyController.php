@@ -88,95 +88,101 @@ class HineyController extends Controller
             // берем текущий баланс
             if ($balances = $binance_futures->getBalances()) {
 
-                // взять все пары к которым есть информация
-                $precisions = json_decode(Storage::get($this->file), true);
+                // проверяет, удовлетворяет ли баланс минимальным требованиям
+                if ($binance_futures->protectBalance($balances)) {
 
-                // берем все торгующиеся рынки
-                $pairs_original = array_keys($precisions);
+                    // взять все пары к которым есть информация
+                    $precisions = json_decode(Storage::get($this->file), true);
 
-                // берем рынки, которые находятся не в позиции
-                $pairs_not_in_position = $binance_futures->getPairsNotInPosition($balances);
+                    // берем все торгующиеся рынки
+                    $pairs_original = array_keys($precisions);
 
-                // пройтись по всем заданным мною рынкам, убедиться, что они существуют
-                foreach ($pairs as $pair)
-                    if (in_array($pair, $pairs_original)) {
+                    // берем рынки, которые находятся не в позиции
+                    $pairs_not_in_position = $binance_futures->getPairsNotInPosition($balances);
 
-                        // проверка позиции на рынке
-                        if (in_array($pair, $pairs_not_in_position)) {
+                    // пройтись по всем заданным мною рынкам, убедиться, что они существуют
+                    foreach ($pairs as $pair)
+                        if (in_array($pair, $pairs_original)) {
 
-                            // создать экземпляр стратегии по свечам бинанса
-                            $strategy = new TheHineyMoneyFlow(
-                                Binance::getCandles($pair, $timeframe, removeCurrent: true)
-                            );
+                            // проверка позиции на рынке
+                            if (in_array($pair, $pairs_not_in_position)) {
 
-                            // запустить стратегию
-                            if ($position = $strategy->run()) {
+                                // создать экземпляр стратегии по свечам бинанса
+                                $strategy = new TheHineyMoneyFlow(
+                                    Binance::getCandles($pair, $timeframe, removeCurrent: true)
+                                );
 
-                                // закрываем ненужные открытые ордера
-                                if ($open_orders = $binance_futures->getAllOpenOrders($pair))
-                                    foreach ($open_orders as $open_order)
-                                        $binance_futures->cancelOrder($open_order['orderId'], $open_order['symbol']);
+                                // запустить стратегию
+                                if ($position = $strategy->run()) {
 
-                                // рассчет amount, который нужно для открытия позиции
-                                $position['amount'] = $strategy->countAmount();
+                                    // закрываем ненужные открытые ордера
+                                    if ($open_orders = $binance_futures->getAllOpenOrders($pair))
+                                        foreach ($open_orders as $open_order)
+                                            $binance_futures->cancelOrder($open_order['orderId'], $open_order['symbol']);
 
-                                // округли все значения в соответсвии с биржей по precisions из файла
-                                $strategy->round($position, $precisions[$pair]);
+                                    // рассчет amount, который нужно для открытия позиции
+                                    $position['amount'] = $strategy->countAmount();
 
-                                // если ордер поставился
-                                if (
-                                    $order = $binance_futures->createOrder(
-                                        $pair,
-                                        $position['position'],
-                                        'MARKET',
-                                        $position['amount']
-                                    )
-                                ) {
+                                    // округли все значения в соответсвии с биржей по precisions из файла
+                                    $strategy->round($position, $precisions[$pair]);
 
-                                    // поставить стоп лосс
-                                    $stop_market = $binance_futures->createOrder(
-                                        $pair,
-                                        $strategy->reversePosition($position['position']),
-                                        'STOP_MARKET',
-                                        options: [
-                                            'stop_price' => $position['stop_loss'],
-                                            'close_position' => 'true',
-                                            'working_type' => 'MARK_PRICE',
-                                        ]
-                                    );
+                                    // если ордер поставился
+                                    if (
+                                        $order = $binance_futures->createOrder(
+                                            $pair,
+                                            $position['position'],
+                                            'MARKET',
+                                            $position['amount']
+                                        )
+                                    ) {
 
-                                    // поставить тейк профит
-                                    $take_profit = $binance_futures->createOrder(
-                                        $pair,
-                                        $strategy->reversePosition($position['position']),
-                                        'TAKE_PROFIT_MARKET',
-                                        options: [
-                                            'stop_price' => $position['take_profit'],
-                                            'close_position' => 'true',
-                                            'working_type' => 'MARK_PRICE',
-                                        ]
-                                    );
+                                        // поставить стоп лосс
+                                        $stop_market = $binance_futures->createOrder(
+                                            $pair,
+                                            $strategy->reversePosition($position['position']),
+                                            'STOP_MARKET',
+                                            options: [
+                                                'stop_price' => $position['stop_loss'],
+                                                'close_position' => 'true',
+                                                'working_type' => 'MARK_PRICE',
+                                            ]
+                                        );
 
-                                    if (!$stop_market)
-                                        $telegram->send($pair . ' Stop loss is not set!!!' . "\n"); // отправляет сообщение в телеграм о том, что стоп лосс не выставлен
+                                        // поставить тейк профит
+                                        $take_profit = $binance_futures->createOrder(
+                                            $pair,
+                                            $strategy->reversePosition($position['position']),
+                                            'TAKE_PROFIT_MARKET',
+                                            options: [
+                                                'stop_price' => $position['take_profit'],
+                                                'close_position' => 'true',
+                                                'working_type' => 'MARK_PRICE',
+                                            ]
+                                        );
 
-                                    if (!$take_profit)
-                                        $telegram->send($pair . ' Take Profit is not set!!! JSON: ' . "\n"); // отправляет сообщение в телеграм о том, что тейк профит не выставлен
+                                        if (!$stop_market)
+                                            $telegram->send($pair . ' Stop loss is not set!!!' . "\n"); // отправляет сообщение в телеграм о том, что стоп лосс не выставлен
 
-                                    // отправляет сообщение в телеграм о нашей позиции
-                                    $telegram->send(
-                                        $strategy->message($pair, $position, $timeframe)
-                                    );
+                                        if (!$take_profit)
+                                            $telegram->send($pair . ' Take Profit is not set!!! JSON: ' . "\n"); // отправляет сообщение в телеграм о том, что тейк профит не выставлен
 
-                                } else
-                                    $telegram->send($pair . ' For some reason order is not created!!! JSON: ' . $order . "\n"); // отправляет сообщение в телеграм об ошибке постановки ордера
+                                        // отправляет сообщение в телеграм о нашей позиции
+                                        $telegram->send(
+                                            $strategy->message($pair, $position, $timeframe)
+                                        );
+
+                                    } else
+                                        $telegram->send($pair . ' For some reason order is not created!!! JSON: ' . $order . "\n"); // отправляет сообщение в телеграм об ошибке постановки ордера
+
+                                }
 
                             }
 
-                        }
+                        } else
+                            $telegram->send($pair . ' something wrong. It is no in precision file!!!' . "\n"); // отправляет сообщение в телеграм об ошибке
 
-                    } else
-                        $telegram->send($pair . ' something wrong. It is no in precision file!!!' . "\n"); // отправляет сообщение в телеграм об ошибке
+                } else
+                    $telegram->send('Balance not protected!!!' . "\n"); // отправляет сообщение в телеграм о малом балансе
 
             } else
                 $telegram->send('Can\'t get balance!!! Message: ' . $balances . "\n"); // отправляет сообщение в телеграм о непоступлении баланса

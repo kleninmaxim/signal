@@ -2,9 +2,11 @@
 
 namespace App\Hiney;
 
+use App\Hiney\Src\Math;
 use App\Hiney\Src\Telegram;
 use App\Models\ErrorLog;
 use Illuminate\Support\Facades\Http;
+use JetBrains\PhpStorm\Pure;
 
 class BinanceFutures
 {
@@ -445,6 +447,30 @@ class BinanceFutures
             if ($balance['notional'] == 0) $pairs_not_in_position[] = $balance['symbol'];
 
         return $pairs_not_in_position ?? [];
+
+    }
+
+    #[Pure] public function protectBalance(
+        $balances,
+        $unrealized_profit_draw_down = -15,
+        $available_balance_draw_down = 10
+    ) :bool
+    {
+
+        $unrealized_profit_to_wallet_balance = Math::percentage($balances['totalUnrealizedProfit'], $balances['totalWalletBalance']);
+
+        $available_balance_to_wallet_balance = Math::percentage($balances['availableBalance'], $balances['totalWalletBalance']);
+
+        debug($unrealized_profit_to_wallet_balance);
+        debug($available_balance_to_wallet_balance);
+
+        if (
+            $unrealized_profit_to_wallet_balance >= $unrealized_profit_draw_down &&
+            $available_balance_to_wallet_balance >= $available_balance_draw_down
+        ) return true;
+
+
+        return false;
 
     }
 
