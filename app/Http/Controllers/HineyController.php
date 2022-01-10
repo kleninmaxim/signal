@@ -201,7 +201,8 @@ class HineyController extends Controller
     public function statisticBalance()
     {
 
-        if ($balances = (new BinanceFutures())->getBalances())
+        if ($balances = (new BinanceFutures())->getBalances()) {
+
             Balance::create([
                 'total_wallet_balance' => $balances['totalWalletBalance'],
                 'total_unrealized_profit' => $balances['totalUnrealizedProfit'],
@@ -209,6 +210,16 @@ class HineyController extends Controller
                 'available_balance' => $balances['availableBalance'],
                 'created_at' => Carbon::now()->format('Y-m-d H:00:00')
             ]);
+
+            (new Telegram())->send(
+                'BALANCE.' . "\n" .
+                'Total Wallet Balance: ' . $balances['totalWalletBalance'] . "\n" .
+                'Total Unrealized Profit: ' . $balances['totalUnrealizedProfit'] . "\n" .
+                'Total Margin Balance: ' . $balances['totalMarginBalance'] . "\n" .
+                'Total Available Balance: ' . $balances['availableBalance'] . "\n"
+            ); // отправляет сообщение в телеграм о балансе
+
+        }
 
     }
 
