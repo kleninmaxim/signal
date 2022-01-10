@@ -9,16 +9,19 @@ use Throwable;
 class Telegram
 {
     private Api $telegram;
-    private int|float $chat_id;
+    private array $chat_ids;
 
     public function __construct()
     {
 
         try {
 
-            $this->telegram = new Api(config('api.telegram_token_binance'));
+            $this->telegram = new Api(config('api.telegram_token_rocket'));
 
-            $this->chat_id = config('api.telegram_user_id');
+            $this->chat_ids = [
+                config('api.telegram_user_id'),
+                config('api.telegram_dima_id'),
+            ];
 
         } catch (Throwable $e) {
 
@@ -36,7 +39,8 @@ class Telegram
 
         try {
 
-            $this->telegram->sendMessage(['chat_id' => $this->chat_id, 'text' => $message]);
+            foreach ($this->chat_ids as $chat_id)
+                $this->telegram->sendMessage(['chat_id' => $chat_id, 'text' => $message]);
 
         } catch (Throwable $e) {
 
