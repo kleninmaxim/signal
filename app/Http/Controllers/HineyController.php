@@ -8,6 +8,7 @@ use App\Hiney\Src\Telegram;
 use App\Hiney\Strategies\TheHineyMoneyFlow;
 use App\Models\Statistic\Balance;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class HineyController extends Controller
@@ -261,6 +262,19 @@ class HineyController extends Controller
             Storage::disk($this->disk)->put($this->file, json_encode($precisions ?? []));
 
         }
+
+    }
+
+    public function getOpenOrders()
+    {
+
+        $open_orders = Cache::remember('open_orders', 10, function () {
+            return array_filter((new BinanceFutures())->getPositionInformation(), function($open_order) {
+                return $open_order['notional'] != 0;
+            });
+        });
+
+        return view('open-orders', compact('open_orders'));
 
     }
 

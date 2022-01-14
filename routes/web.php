@@ -35,6 +35,8 @@ Route::get('/binance/ema/btc', [\App\Http\Controllers\BinanceController::class, 
 
 Route::get('/tinkoff/tickers', [\App\Http\Controllers\TinkoffController::class, 'allTickers']);
 
+Route::get('/openOrders', [\App\Http\Controllers\HineyController::class, 'getOpenOrders']);
+
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/percentage', [\App\Http\Controllers\PercentageController::class, 'percentage']);

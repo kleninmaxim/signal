@@ -378,21 +378,21 @@ class BinanceFutures
     (
         [0] => Array
         (
-        [symbol] => WAVESUSDT
-        [positionAmt] => 2.0
-        [entryPrice] => 14.7895
-        [markPrice] => 14.79725859
-        [unRealizedProfit] => 0.01551718
-        [liquidationPrice] => 0
-        [leverage] => 50
-        [maxNotionalValue] => 5000
-        [marginType] => cross
-        [isolatedMargin] => 0.00000000
-        [isAutoAddMargin] => false
-        [positionSide] => BOTH
-        [notional] => 29.59451718
-        [isolatedWallet] => 0
-        [updateTime] => 1640720914294
+            [symbol] => WAVESUSDT
+            [positionAmt] => 2.0
+            [entryPrice] => 14.7895
+            [markPrice] => 14.79725859
+            [unRealizedProfit] => 0.01551718
+            [liquidationPrice] => 0
+            [leverage] => 50
+            [maxNotionalValue] => 5000
+            [marginType] => cross
+            [isolatedMargin] => 0.00000000
+            [isAutoAddMargin] => false
+            [positionSide] => BOTH
+            [notional] => 29.59451718
+            [isolatedWallet] => 0
+            [updateTime] => 1640720914294
         )
     )
     */
