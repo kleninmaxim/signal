@@ -296,7 +296,7 @@ class HineyController extends Controller
             'BCHUSDT',
             'BNBUSDT',
             'BTCUSDT',
-            'BTTUSDT',
+            //'BTTUSDT',
             'CELOUSDT',
             'CHZUSDT',
             'COMPUSDT',
