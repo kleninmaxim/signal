@@ -99,6 +99,55 @@ class TheHineyMoneyFlow
 
     }
 
+    public function runReversal(): bool|array
+    {
+
+        if (isset($this->candles)) {
+
+            $current_candle = array_shift($this->candles);
+
+            $current_position = ($current_candle['haOpen'] > $current_candle['haClose']) ? $this->sell : $this->buy;
+
+            $current_short_position = $current_candle['mfi'] >= 79 && $current_position == $this->sell;
+
+            $current_long_position = $current_candle['mfi'] <= 21 && $current_position == $this->buy;
+
+            foreach ($this->candles as $candle) {
+
+                $candle_position = ($candle['haOpen'] > $candle['haClose']) ? $this->sell : $this->buy;
+
+                if ($candle_position != $current_position) {
+
+                    if (($candle['mfi'] >= 79 && $candle_position == $this->buy) || $current_short_position) {
+
+                        return $this->position = [
+                            'position' => ($current_position == $this->sell) ? $this->buy : $this->sell,
+                            'price' => $current_candle['close'],
+                            'take_profit' => $current_candle['atr_band_upper'],
+                            'stop_loss' => $this->countTakeProfit($current_candle['close'], $current_candle['atr_band_upper']),
+                        ];
+
+                    } elseif (($candle['mfi'] <= 21 && $candle_position == $this->sell) || $current_long_position) {
+
+                        return $this->position = [
+                            'position' => ($current_position == $this->sell) ? $this->buy : $this->sell,
+                            'price' => $current_candle['close'],
+                            'take_profit' => $current_candle['atr_band_lower'],
+                            'stop_loss' => $this->countTakeProfit($current_candle['close'], $current_candle['atr_band_lower']),
+                        ];
+
+                    }
+
+                } else break;
+
+            }
+
+        }
+
+        return false;
+
+    }
+
     public function countAmount(): float|int|bool
     {
 

@@ -120,7 +120,7 @@ class HineyController extends Controller
                                 );
 
                                 // запустить стратегию
-                                if ($position = $strategy->run()) {
+                                if ($position = $strategy->runReversal()) {
 
                                     // закрываем ненужные открытые ордера
                                     if ($open_orders = $binance_futures->getAllOpenOrders($pair))
