@@ -78,7 +78,7 @@ class HineyController extends Controller
         $pairs = $this->getPairs();
 
         // таймфрейм
-        $timeframe = '5m';
+        $timeframe = '1h';
 
         // записать precisions в файл
         $this->saveToFileContractsPrecisions();

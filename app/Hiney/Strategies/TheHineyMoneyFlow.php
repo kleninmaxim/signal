@@ -17,7 +17,7 @@ class TheHineyMoneyFlow
     private string $buy = 'BUY';
     private string $sell = 'SELL';
 
-    private float $profit = 1;
+    private float $profit = 2;
     private array $position;
 
     public function __construct($candles)
