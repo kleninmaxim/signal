@@ -39,4 +39,5 @@ class Atr extends Indicator
         return $atrs ?? [];
 
     }
+
 }
