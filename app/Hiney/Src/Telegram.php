@@ -11,17 +11,16 @@ class Telegram
     private Api $telegram;
     private array $chat_ids;
 
-    public function __construct()
+    public function __construct($dima = true)
     {
 
         try {
 
             $this->telegram = new Api(config('api.telegram_token_rocket'));
 
-            $this->chat_ids = [
-                config('api.telegram_user_id'),
-                config('api.telegram_dima_id'),
-            ];
+            $this->chat_ids =  ($dima)
+                ? [config('api.telegram_user_id'), config('api.telegram_dima_id')]
+                : [config('api.telegram_user_id')];
 
         } catch (Throwable $e) {
 
