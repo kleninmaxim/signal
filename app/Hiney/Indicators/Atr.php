@@ -6,11 +6,13 @@ class Atr extends Indicator
 {
 
     private int $atr_period;
+    private string $name;
 
-    public function __construct($atr_period = 14)
+    public function __construct($atr_period = 14, $name = 'atr')
     {
 
         $this->atr_period = $atr_period;
+        $this->name = $name;
 
     }
 
@@ -32,7 +34,7 @@ class Atr extends Indicator
         }
 
         foreach ((new Rma($this->atr_period, null))->get($trueRanges) as $key => $rma)
-            $atrs[$key]['atr'] = $rma['rma'];
+            $atrs[$key][$this->name] = $rma['rma'];
 
         return $atrs ?? [];
 
