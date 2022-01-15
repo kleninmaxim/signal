@@ -42,6 +42,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/percentage', [\App\Http\Controllers\PercentageController::class, 'percentage']);
 
 
+    Route::get('/support/supportStrategy', [\App\Http\Controllers\SupportController::class, 'supportStrategy']);
+
+
+
     Route::get('/hiney/test', [\App\Http\Controllers\HineyController::class, 'test']);
 
     Route::get('/hiney/saveToFileContractsPrecisions', [\App\Http\Controllers\HineyController::class, 'saveToFileContractsPrecisions']);
