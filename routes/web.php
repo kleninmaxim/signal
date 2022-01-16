@@ -35,7 +35,9 @@ Route::get('/binance/ema/btc', [\App\Http\Controllers\BinanceController::class, 
 
 Route::get('/tinkoff/tickers', [\App\Http\Controllers\TinkoffController::class, 'allTickers']);
 
-Route::get('/openOrders', [\App\Http\Controllers\HineyController::class, 'getOpenOrders']);
+Route::get('/openOrders', [\App\Http\Controllers\HineyController::class, 'getOpenOrders'])->name('get_open_orders');
+
+Route::post('/storeSettings', [\App\Http\Controllers\HineyController::class, 'storeSettings'])->name('store_settings');
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 

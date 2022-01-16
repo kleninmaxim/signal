@@ -8,6 +8,7 @@ use App\Hiney\Src\Telegram;
 use App\Hiney\Strategies\TheHineyMoneyFlow;
 use App\Models\Setting;
 use App\Models\Statistic\Balance;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -289,7 +290,36 @@ class HineyController extends Controller
             });
         });
 
-        return view('open-orders', compact('open_orders'));
+        $strategy_options = Setting::where('name', 'Hiney')->first();
+
+        if (!$strategy_options->options) {
+
+            $strategy_options->options = json_encode(['status' => false]);
+
+            $strategy_options->save();
+
+        }
+
+        $status = json_decode($strategy_options->options, true)['status'];
+
+        return view('open-orders', compact('open_orders', 'status'));
+
+    }
+
+    public function storeSettings(Request $request)
+    {
+
+        $attributes = \request()->validate([
+            'status' => ['required', 'max:1'],
+        ]);
+
+        $strategy_options = Setting::where('name', 'Hiney')->first();
+
+        $strategy_options->options = json_encode(['status' => (bool)$attributes['status']]);
+
+        $strategy_options->save();
+
+        return redirect()->back();
 
     }
 

@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Open Orders</title>
 
@@ -13,6 +14,24 @@
 
 </head>
 <body>
+
+<div>
+    @if($status)
+        Status: <span style="color:green">On</span>
+        <form method="post" action="{{route('store_settings')}}">
+            @csrf
+            <input type="hidden" name="status" value="0">
+            <button type="submit"><span>Turn Off</span></button>
+        </form>
+    @else
+        Status: <span style="color:red">Off</span>
+        <form method="post" action="{{route('store_settings')}}">
+            @csrf
+            <input type="hidden" name="status" value="1">
+            <button type="submit"><span>Turn On</span></button>
+        </form>
+    @endif
+</div>
 
 <table class="table">
     <thead>
