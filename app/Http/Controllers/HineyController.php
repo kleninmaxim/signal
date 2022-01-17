@@ -65,12 +65,12 @@ class HineyController extends Controller
 
         //debug((new BinanceFutures())->getBalances(), true);
 
-        $first_balance = Balance::orderBy('created_at', 'asc')->first()->toArray();
-        $last_balance = Balance::orderBy('created_at', 'desc')->first()->toArray();
-
-        $annual_apy = ($last_balance['total_margin_balance'] - $first_balance['total_margin_balance']) * 365 * 24 * 100 / ((Carbon::parse($first_balance['created_at'])->diffInHours(Carbon::parse($last_balance['created_at']))) * $first_balance['total_margin_balance']);
-        debug('Annual APY: ' . $annual_apy);
-        debug('USDT in day: ' . 5 * $annual_apy * $first_balance['total_margin_balance'] / (365 * 100));
+//        $first_balance = Balance::orderBy('created_at', 'asc')->first()->toArray();
+//        $last_balance = Balance::orderBy('created_at', 'desc')->first()->toArray();
+//
+//        $annual_apy = ($last_balance['total_margin_balance'] - $first_balance['total_margin_balance']) * 365 * 24 * 100 / ((Carbon::parse($first_balance['created_at'])->diffInHours(Carbon::parse($last_balance['created_at']))) * $first_balance['total_margin_balance']);
+//        debug('Annual APY: ' . $annual_apy);
+//        debug('USDT in day: ' . 5 * $annual_apy * $first_balance['total_margin_balance'] / (365 * 100));
 
     }
 
@@ -191,6 +191,16 @@ class HineyController extends Controller
                                             // отправляет сообщение в телеграм о нашей позиции
                                             $telegram->send(
                                                 $strategy->message($pair, $position, $timeframe)
+                                            );
+
+                                            $telegram->send(
+                                                '*R1_' . $order['orderId'] . '*' . "\n" .
+                                                '*' . $pair . '*' . "\n" .
+                                                'Time: ' . Carbon::createFromTimestamp($order['updateTime'] / 1000)->toDateTimeString() . "\n" .
+                                                ($position['position'] == 'SELL') ? '(S): ' :  '(L): ' . $order['price'] . "\n" .
+                                                'Fee: ' . $order['origQty'] * $order['price'] * 0.04 / 100 . ' usdt' . "\n" .
+                                                'Amount: *' . $order['origQty'] * $order['price'] . '*' . "\n" .
+                                                'TP/SL: ' . $position['take_profit'] . ' / ' . $position['stop_loss'] . "\n"
                                             );
 
                                         } else
