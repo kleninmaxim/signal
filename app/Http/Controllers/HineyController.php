@@ -193,11 +193,13 @@ class HineyController extends Controller
                                                 $strategy->message($pair, $position, $timeframe)
                                             );
 
+                                            $short_or_long = ($position['position'] == 'SELL') ? '(S): ' :  '(L): ';
+
                                             $telegram->send(
                                                 '*R1_' . $order['orderId'] . '*' . "\n" .
                                                 '*' . $pair . '*' . "\n" .
                                                 'Time: ' . Carbon::createFromTimestamp($order['updateTime'] / 1000)->toDateTimeString() . "\n" .
-                                                ($position['position'] == 'SELL') ? '(S): ' :  '(L): ' . $order['price'] . "\n" .
+                                                $short_or_long . $order['price'] . "\n" .
                                                 'Fee: ' . $order['origQty'] * $order['price'] * 0.04 / 100 . ' usdt' . "\n" .
                                                 'Amount: *' . $order['origQty'] * $order['price'] . '*' . "\n" .
                                                 'TP/SL: ' . $position['take_profit'] . ' / ' . $position['stop_loss'] . "\n"
