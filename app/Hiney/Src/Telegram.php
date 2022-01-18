@@ -39,7 +39,7 @@ class Telegram
         try {
 
             foreach ($this->chat_ids as $chat_id)
-                $this->telegram->sendMessage(['chat_id' => $chat_id, 'text' => $message]);
+                $this->telegram->sendMessage(['chat_id' => $chat_id, 'text' => $message, 'parse_mode' => 'Markdown']);
 
         } catch (Throwable $e) {
 
