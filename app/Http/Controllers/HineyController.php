@@ -200,13 +200,13 @@ class HineyController extends Controller
                                                 '*R1_' . $order['orderId'] . '*' . "\n" .
                                                 '*' . $pair . '*' . "\n" .
                                                 'Time: ' . Carbon::createFromTimestamp($order['updateTime'] / 1000)->toDateTimeString() . "\n" .
-                                                $short_or_long . $position['price'] . "\n" .
-                                                'Fee: ' . Math::round($position['amount'] * $position['price']) * 0.04 / 100 . ' usdt' . "\n" .
+                                                $short_or_long . '*' . $position['price'] . '*' . "\n" .
+                                                'Fee: *' . Math::round($position['amount'] * $position['price']) * 0.04 / 100 . '*' . ' usdt' . "\n" .
                                                 'Amount: *' . Math::round($position['amount'] * $position['price']) . '*' . "\n" .
-                                                'TP/SL: ' . $position['take_profit'] . ' / ' . $position['stop_loss'] . "\n" .
+                                                'TP/SL: *' . $position['take_profit'] . '* / *' . $position['stop_loss'] . '*' . "\n" .
                                                 'Follow: http://klenin.site/openOrders' . "\n" .
-                                                'U.P.: *' . $balances['totalUnrealizedProfit'] . '*'  . "\n" .
-                                                'A.B.: *' . $balances['totalMarginBalance'] . '*'  . "\n"
+                                                'U.P.: *' . $balances['totalUnrealizedProfit'] . '*' . "\n" .
+                                                'A.B.: *' . $balances['totalMarginBalance'] . '*' . "\n"
                                             );
 
                                         } else
