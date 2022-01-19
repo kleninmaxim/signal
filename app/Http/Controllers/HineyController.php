@@ -244,13 +244,13 @@ class HineyController extends Controller
                 'created_at' => Carbon::now()->format('Y-m-d H:00:00')
             ]);
 
-            (new Telegram())->send(
-                'BALANCE.' . "\n" .
-                'Total Wallet Balance: ' . $balances['totalWalletBalance'] . "\n" .
-                'Total Unrealized Profit: ' . $balances['totalUnrealizedProfit'] . "\n" .
-                'Total Margin Balance: ' . $balances['totalMarginBalance'] . "\n" .
-                'Total Available Balance: ' . $balances['availableBalance'] . "\n"
-            ); // отправляет сообщение в телеграм о балансе
+//            (new Telegram())->send(
+//                'BALANCE.' . "\n" .
+//                'Total Wallet Balance: ' . $balances['totalWalletBalance'] . "\n" .
+//                'Total Unrealized Profit: ' . $balances['totalUnrealizedProfit'] . "\n" .
+//                'Total Margin Balance: ' . $balances['totalMarginBalance'] . "\n" .
+//                'Total Available Balance: ' . $balances['availableBalance'] . "\n"
+//            ); // отправляет сообщение в телеграм о балансе
 
         }
 
