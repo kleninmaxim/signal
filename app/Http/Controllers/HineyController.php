@@ -190,12 +190,14 @@ class HineyController extends Controller
                                                 $telegram->send($pair . ' Take Profit is not set!!! JSON: ' . "\n"); // отправляет сообщение в телеграм о том, что тейк профит не выставлен
 
                                             // отправляет сообщение в телеграм о нашей позиции
-                                            $telegram->send(
-                                                $strategy->message($pair, $position, $timeframe)
-                                            );
+//                                            $telegram->send(
+//                                                $strategy->message($pair, $position, $timeframe)
+//                                            );
 
+                                            // расчет для сообщения
                                             $short_or_long = ($position['position'] == 'SELL') ? '(S): ' :  '(L): ';
 
+                                            // отправляет сообщение в телеграм о нашей позиции
                                             $telegram->send(
                                                 '*R1_' . $order['orderId'] . '*' . "\n" .
                                                 '*' . $pair . '*' . "\n" .
