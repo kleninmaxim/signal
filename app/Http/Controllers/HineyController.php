@@ -24,6 +24,8 @@ class HineyController extends Controller
     public function test()
     {
 
+        //debug((new BinanceFutures())->changeInitialLeverage('TRXUSDT', 10), true);
+
         //debug((new BinanceFutures())->getContracts(), true);
 
         //debug((new BinanceFutures())->cancelOrder('4887726141', 'WAVESUSDT'), true);
@@ -144,75 +146,80 @@ class HineyController extends Controller
                                                 $binance_futures->cancelOrder($open_order['orderId'], $open_order['symbol']);
 
                                         // рассчет amount, который нужно для открытия позиции
-                                        $position['amount'] = $strategy->countAmount();
+                                        $position['amount'] = $strategy->countAmountInUsdt();
 
                                         // округли все значения в соответсвии с биржей по precisions из файла
                                         $strategy->round($position, $precisions[$pair]);
 
-                                        // если ордер поставился
-                                        if (
-                                            $order = $binance_futures->createOrder(
-                                                $pair,
-                                                $position['position'],
-                                                'MARKET',
-                                                $position['amount']
-                                            )
-                                        ) {
+                                        // изменить уровень плеча
+                                        if ($binance_futures->changeInitialLeverage($pair, 10)) {
 
-                                            // поставить стоп лосс
-                                            $stop_market = $binance_futures->createOrder(
-                                                $pair,
-                                                $strategy->reversePosition($position['position']),
-                                                'STOP_MARKET',
-                                                options: [
-                                                    'stop_price' => $position['stop_loss'],
-                                                    'close_position' => 'true',
-                                                    'working_type' => 'MARK_PRICE',
-                                                ]
-                                            );
+                                            // если ордер поставился
+                                            if (
+                                                $order = $binance_futures->createOrder(
+                                                    $pair,
+                                                    $position['position'],
+                                                    'MARKET',
+                                                    $position['amount']
+                                                )
+                                            ) {
 
-                                            // поставить тейк профит
-                                            $take_profit = $binance_futures->createOrder(
-                                                $pair,
-                                                $strategy->reversePosition($position['position']),
-                                                'TAKE_PROFIT_MARKET',
-                                                options: [
-                                                    'stop_price' => $position['take_profit'],
-                                                    'close_position' => 'true',
-                                                    'working_type' => 'MARK_PRICE',
-                                                ]
-                                            );
+                                                // поставить стоп лосс
+                                                $stop_market = $binance_futures->createOrder(
+                                                    $pair,
+                                                    $strategy->reversePosition($position['position']),
+                                                    'STOP_MARKET',
+                                                    options: [
+                                                        'stop_price' => $position['stop_loss'],
+                                                        'close_position' => 'true',
+                                                        'working_type' => 'MARK_PRICE',
+                                                    ]
+                                                );
 
-                                            if (!$stop_market)
-                                                $telegram->send($pair . ' Stop loss is not set!!!' . "\n"); // отправляет сообщение в телеграм о том, что стоп лосс не выставлен
+                                                // поставить тейк профит
+                                                $take_profit = $binance_futures->createOrder(
+                                                    $pair,
+                                                    $strategy->reversePosition($position['position']),
+                                                    'TAKE_PROFIT_MARKET',
+                                                    options: [
+                                                        'stop_price' => $position['take_profit'],
+                                                        'close_position' => 'true',
+                                                        'working_type' => 'MARK_PRICE',
+                                                    ]
+                                                );
 
-                                            if (!$take_profit)
-                                                $telegram->send($pair . ' Take Profit is not set!!! JSON: ' . "\n"); // отправляет сообщение в телеграм о том, что тейк профит не выставлен
+                                                if (!$stop_market)
+                                                    $telegram->send($pair . ' Stop loss is not set!!!' . "\n"); // отправляет сообщение в телеграм о том, что стоп лосс не выставлен
 
-                                            // отправляет сообщение в телеграм о нашей позиции
+                                                if (!$take_profit)
+                                                    $telegram->send($pair . ' Take Profit is not set!!! JSON: ' . "\n"); // отправляет сообщение в телеграм о том, что тейк профит не выставлен
+
+                                                // отправляет сообщение в телеграм о нашей позиции
 //                                            $telegram->send(
 //                                                $strategy->message($pair, $position, $timeframe)
 //                                            );
 
-                                            // расчет для сообщения
-                                            $short_or_long = ($position['position'] == 'SELL') ? '(S): ' :  '(L): ';
+                                                // расчет для сообщения
+                                                $short_or_long = ($position['position'] == 'SELL') ? '(S): ' :  '(L): ';
 
-                                            // отправляет сообщение в телеграм о нашей позиции
-                                            $telegram->send(
-                                                '*R1_' . $order['orderId'] . '*' . "\n" .
-                                                '*' . $pair . '*' . "\n" .
-                                                'Time: ' . Carbon::createFromTimestamp($order['updateTime'] / 1000)->toDateTimeString() . "\n" .
-                                                $short_or_long . '*' . $position['price'] . '*' . "\n" .
-                                                'Fee: *' . Math::round($position['amount'] * $position['price']) * 0.04 / 100 . '*' . ' usdt' . "\n" .
-                                                'Amount: *' . Math::round($position['amount'] * $position['price']) . '*' . "\n" .
-                                                'TP/SL: *' . $position['take_profit'] . '* / *' . $position['stop_loss'] . '*' . "\n" .
-                                                'Follow: http://klenin.site/openOrders' . "\n" .
-                                                'U.P.: *' . $balances['totalUnrealizedProfit'] . '*' . "\n" .
-                                                'A.B.: *' . $balances['totalMarginBalance'] . '*' . "\n"
-                                            );
+                                                // отправляет сообщение в телеграм о нашей позиции
+                                                $telegram->send(
+                                                    '*R1_' . $order['orderId'] . '*' . "\n" .
+                                                    '*' . $pair . '*' . "\n" .
+                                                    'Time: ' . Carbon::createFromTimestamp($order['updateTime'] / 1000)->toDateTimeString() . "\n" .
+                                                    $short_or_long . '*' . $position['price'] . '*' . "\n" .
+                                                    'Fee: *' . Math::round($position['amount'] * $position['price']) * 0.04 / 100 . '*' . ' usdt' . "\n" .
+                                                    'Amount: *' . Math::round($position['amount'] * $position['price']) . '*' . "\n" .
+                                                    'TP/SL: *' . $position['take_profit'] . '* / *' . $position['stop_loss'] . '*' . "\n" .
+                                                    'Follow: http://klenin.site/openOrders' . "\n" .
+                                                    'U.P.: *' . $balances['totalUnrealizedProfit'] . '*' . "\n" .
+                                                    'A.B.: *' . $balances['totalMarginBalance'] . '*' . "\n"
+                                                );
 
-                                        } else
-                                            $telegram->send($pair . ' For some reason order is not created!!! JSON: ' . $order . "\n"); // отправляет сообщение в телеграм об ошибке постановки ордера
+                                            } else
+                                                $telegram->send($pair . ' For some reason order is not created!!! JSON: ' . $order . "\n"); // отправляет сообщение в телеграм об ошибке постановки ордера
+
+                                        }
 
                                     }
 

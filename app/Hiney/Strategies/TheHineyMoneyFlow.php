@@ -19,6 +19,7 @@ class TheHineyMoneyFlow
 
     private float $profit = 2;
     private array $position;
+    private float $amount_usdt = 100;
 
     public function __construct($candles)
     {
@@ -145,6 +146,15 @@ class TheHineyMoneyFlow
         }
 
         return false;
+
+    }
+
+    public function countAmountInUsdt(): float|int|bool
+    {
+
+        return isset($this->position)
+            ? $this->amount_usdt / $this->position['price']
+            : false;
 
     }
 
