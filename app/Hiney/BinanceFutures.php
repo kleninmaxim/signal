@@ -429,6 +429,7 @@ class BinanceFutures
     */
     public function getPositionInformation(string $symbol = null): array|bool
     {
+
         for ($i = 0; $i < 5; $i++) {
 
             $query = http_build_query([
@@ -464,6 +465,62 @@ class BinanceFutures
 
             } else
                 return $positions;
+
+        }
+
+        return false;
+
+    }
+
+    /*
+    Array
+    (
+        [symbol] => TRXUSDT
+        [leverage] => 50
+        [maxNotionalValue] => 50000
+    )
+    */
+    public function changeInitialLeverage($symbol, $leverage): bool|array
+    {
+
+        for ($i = 0; $i < 5; $i++) {
+
+            $query = http_build_query([
+                'timestamp' => $this->getTimestamp(),
+                'symbol' => $symbol,
+                'leverage' => $leverage,
+            ]);
+
+            $query .= '&signature=' . $this->generateSignature($query);
+
+            $changed_leverage = Http::withHeaders([
+                'X-MBX-APIKEY' => $this->public_api,
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ])->withBody(
+                $query,
+                'application/json'
+            )->post(
+                $this->base_url . '/fapi/v1/leverage'
+            )->collect()->toArray();
+
+            if (
+                !isset($changed_leverage['leverage']) ||
+                !isset($changed_leverage['symbol'])
+            ) {
+
+                usleep(100000);
+
+                ErrorLog::create([
+                    'title' => 'Can\'t get position information!!! Query is: ' . $query . '. Tries: ' . $i,
+                    'message' => json_encode($changed_leverage),
+                ]);
+
+                $this->telegram->send(
+                    'Can\'t change leverage!!! Query is: ' . $query . '. Tries: ' . $i . '. JSON: ' . json_encode($changed_leverage) . "\n"
+                );
+
+            } else
+                return $changed_leverage;
 
         }
 
