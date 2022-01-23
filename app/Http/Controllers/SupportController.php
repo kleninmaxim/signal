@@ -22,10 +22,19 @@ class SupportController extends Controller
         $timeframe = '5m';
 
         // рынок
-        $pair = 'BTCUSDT';
+        $pair = 'BTC';
 
         // long or short
-        $buy_or_sell = 'BUY';
+        $buy_or_sell = 'SELL'; // BUY SELL
+
+        // изменение цены
+        $percentage_change = 0.5;
+
+        // ATR
+        $atr_parameter = 2;
+
+
+        $pair = $pair . 'USDT';
 
         // записать precisions в файл
         if (!Storage::disk($this->disk)->exists($this->file))
@@ -37,7 +46,8 @@ class SupportController extends Controller
         // создать экземпляр стратегии по свечам бинанса, включая текущую свечу
         $strategy = new Support(
             $binance_futures->getCandles($pair, $timeframe),
-            $buy_or_sell
+            $buy_or_sell,
+            $atr_parameter
         );
 
         // запустить стратегию
@@ -57,11 +67,23 @@ class SupportController extends Controller
                     // рассчет amount, который нужно для открытия позиции
                     $position['amount'] = $strategy->countAmount($balances['totalMarginBalance']);
 
+                    // если хочу поставить ордер в зависимости от процента изменения
+                    if (isset($percentage_change)) {
+
+                        $position = [
+                            'position' => $buy_or_sell,
+                            'price' => $position['price'],
+                            'stop_loss' => ($buy_or_sell == 'SELL')
+                                ? $position['price'] * (1 + $percentage_change / 100)
+                                : $position['price'] * (1 - $percentage_change / 100),
+                            'amount' => $balances['totalMarginBalance'] * 5 / ($percentage_change * $position['price'])
+                        ];
+
+                    }
+
                     // округли все значения в соответсвии с биржей по precisions из файла
                     $strategy->round($position, $precisions[$pair]);
 
-
-                    debug($position, true);
 
                     // если ордер поставился
                     if (
@@ -73,25 +95,7 @@ class SupportController extends Controller
                         )
                     ) {
 
-                        // поставить стоп лосс
-                        $stop_market = $binance_futures->createOrder(
-                            $pair,
-                            $position['position'],
-                            'STOP_MARKET',
-                            options: [
-                                'stop_price' => $position['stop_loss'],
-                                'close_position' => 'true',
-                                'working_type' => 'MARK_PRICE',
-                            ]
-                        );
-
-                        //if (!$stop_market)
-                            //$telegram->send($pair . ' Stop loss is not set!!!' . "\n"); // отправляет сообщение в телеграм о том, что стоп лосс не выставлен
-
-                        // отправляет сообщение в телеграм о нашей позиции
-//                        $telegram->send(
-//                            $strategy->message($pair, $position, $timeframe)
-//                        );
+                        debug($position);
 
                     } //else
                         //$telegram->send($pair . ' For some reason order is not created!!! JSON: ' . $order . "\n"); // отправляет сообщение в телеграм об ошибке постановки ордера
@@ -103,6 +107,7 @@ class SupportController extends Controller
             }
 
         } else {
+            debug('Strategy not allowed you get into position');
             //
         }
 
