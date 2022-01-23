@@ -24,6 +24,8 @@ class HineyController extends Controller
     public function test()
     {
 
+        //debug((new BinanceFutures())->createOrder('BTCUSDT', 'SELL', 'MARKET', 0.001, options: ['reduce_only' => 'true']));
+
         //debug((new BinanceFutures())->changeInitialLeverage('TRXUSDT', 10), true);
 
         //debug((new BinanceFutures())->getContracts(), true);
@@ -146,13 +148,14 @@ class HineyController extends Controller
                                                 $binance_futures->cancelOrder($open_order['orderId'], $open_order['symbol']);
 
                                         // рассчет amount, который нужно для открытия позиции
-                                        $position['amount'] = $strategy->countAmountInUsdt();
+                                        //$position['amount'] = $strategy->countAmountInUsdt();
+                                        $position['amount'] = $strategy->countAmount();
 
                                         // округли все значения в соответсвии с биржей по precisions из файла
                                         $strategy->round($position, $precisions[$pair]);
 
                                         // изменить уровень плеча
-                                        if ($binance_futures->changeInitialLeverage($pair, 10)) {
+                                        //if ($binance_futures->changeInitialLeverage($pair, 10)) {
 
                                             // если ордер поставился
                                             if (
@@ -219,7 +222,7 @@ class HineyController extends Controller
                                             } else
                                                 $telegram->send($pair . ' For some reason order is not created!!! JSON: ' . $order . "\n"); // отправляет сообщение в телеграм об ошибке постановки ордера
 
-                                        }
+                                        //}
 
                                     }
 
