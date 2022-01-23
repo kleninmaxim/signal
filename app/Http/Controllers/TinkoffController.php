@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Hiney\Strategies\TheHineyMoneyFlow;
 use App\Jobs\TinkoffTestJob;
 use App\Models\TinkoffCloseDayTime;
 use App\Models\TinkoffMonthCandle;
@@ -26,6 +27,37 @@ class TinkoffController extends Controller
     public function __construct()
     {
         $this->tinkoff = new Tinkoff();
+    }
+
+    public function testHineyMoneyFlow()
+    {
+
+        $tickers = TinkoffTicker::where([
+            ['name', 'NOT REGEXP', '^[а-яА-Я]'],
+            ['type', 'Stock'],
+            ['margin', true],
+            ['notify', true]
+        ])->select(['id', 'figi', 'ticker'])->get()->toArray();
+
+        foreach ($tickers as $ticker) {
+
+            usleep(100000); //0.1 секунды
+
+            $candles = array_values(array_reverse($this->tinkoff->getHourCandles($ticker['figi'], 2)));
+
+            // создать экземпляр стратегии по свечам бинанса
+            $strategy = new TheHineyMoneyFlow($candles);
+
+            if ($position = $strategy->run()) {
+
+
+
+            }
+
+        }
+
+        debug($tickers, true);
+
     }
 
     public function saveDayCloseCandleTime()
