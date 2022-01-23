@@ -213,8 +213,7 @@ class OnePercentageController extends Controller
     {
 
         // закрыть позицию
-        if ($close_position) {
-
+        if ($close_position)
             $binance_futures->createOrder(
                 $pair,
                 $this->changePosition($current_position),
@@ -222,17 +221,6 @@ class OnePercentageController extends Controller
                 abs($position['positionAmt']),
                 options: ['reduce_only' => 'true']
             );
-
-            $telegram->send(
-                '*' . $pair . '*' . "\n" .
-                '*CLOSE*' . "\n" .
-                'Position: ' . $current_position . "\n" .
-                'Entry price: ' . $position['entryPrice'] . "\n" .
-                'Mark price: ' . $position['markPrice'] . "\n" .
-                'Profit: ' . $position['unRealizedProfit'] . "\n"
-            );
-
-        }
 
         // закрываем ненужные открытые ордера
         if ($open_orders = $binance_futures->getAllOpenOrders($pair))
@@ -274,6 +262,14 @@ class OnePercentageController extends Controller
                 $telegram->send($pair . ' Stop loss is not set!!!' . "\n"); // отправляет сообщение в телеграм о том, что стоп лосс не выставлен
 
             $new_position = $binance_futures->getPositionInformation($pair)[0];
+
+            if ($close_position)
+                $telegram->send(
+                    '*' . $pair . '*' . "\n" .
+                    '*CLOSE*' . "\n" .
+                    'Position: ' . $current_position . "\n" .
+                    'Entry price: ' . $position['entryPrice'] . "\n"
+                );
 
             $telegram->send(
                 '*' . $pair . '*' . "\n" .
