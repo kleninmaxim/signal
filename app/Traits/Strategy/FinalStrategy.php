@@ -66,27 +66,39 @@ trait FinalStrategy
 
             $high = Math::percentage($filter_candle['open'], $filter_candle['high']);
 
-            if ($high > $profit) {
+            if ($high >= $profit) {
 
-                $output[] = $profit;
+                $output[] = /*-1 * */$profit - 0.05;
 
             } else {
 
-                $output[] = Math::percentage($filter_candle['open'], $filter_candle['close']);
+                $output[] = /*-1 * */Math::percentage($filter_candle['open'], $filter_candle['close']) - 0.05;
 
             }
 
             $highs[] = $high;
 
+//            $low = -1 * Math::percentage($filter_candle['open'], $filter_candle['low']);
+//
+//            if ($low >= $profit) {
+//
+//                $output[] = -1 * $profit - 0.05;
+//
+//            } else {
+//
+//                $output[] = Math::percentage($filter_candle['open'], $filter_candle['close']) - 0.05;
+//
+//            }
+//
+//            $highs[] = $low;
+
         }
 
         sort($highs);
 
-        debug($highs);
-
         //debug(Math::statisticAnalyse($highs));
 
-        return $output;
+        return [$output, $highs];
 
     }
 
