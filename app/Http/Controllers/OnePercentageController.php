@@ -49,119 +49,122 @@ class OnePercentageController extends Controller
             if (in_array($second, [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]))
                 error_log(date('Y-m-d H:i:s') . '[INFO] work');
 
-            $kline = BinanceFuturesSocket::run();
-
             // проверка актуален ли этот скрипт по времени
             if ($this->checkTime($hour_start)) {
 
-                // event time is not very old
-                if (abs($kline['event_time'] / 1000 - time()) <= 5) {
+                if ($kline = BinanceFuturesSocket::run()) {
 
-                    // если позиция не открыта
-                    if ($position['positionAmt'] == 0) {
+                    // event time is not very old
+                    if (abs($kline['event_time'] / 1000 - time()) <= 5) {
 
-                        // открываем позицию по умолчанию
-                        $position = $this->action(
-                            $binance_futures,
-                            $pair,
-                            'BUY',
-                            $position,
-                            $kline,
-                            $precisions,
-                            $kline['close'] * 0.98,
-                            $telegram,
-                            true,
-                            false
-                        );
+                        // если позиция не открыта
+                        if ($position['positionAmt'] == 0) {
 
-                        $telegram->send('Open default position' . "\n");
+                            // открываем позицию по умолчанию
+                            $position = $this->action(
+                                $binance_futures,
+                                $pair,
+                                'BUY',
+                                $position,
+                                $kline,
+                                $precisions,
+                                $kline['close'] * 0.98,
+                                $telegram,
+                                true,
+                                false
+                            );
 
-                    } else {
-
-                        $current_position = $position['positionAmt'] < 0 ? 'SELL' : 'BUY';
-
-                        if ($current_position == 'SELL') {
-
-                            // на сколько изменилась цена
-                            $change_price = ($position['entryPrice'] - $kline['close']) / $position['entryPrice'] * 100;
-
-                            // проверка на вхождение цены в диапазон
-                            if ($change_price <= -0.99) {
-
-                                // закрыть позицию и открыть в лонг
-                                $position = $this->action(
-                                    $binance_futures,
-                                    $pair,
-                                    $current_position,
-                                    $position,
-                                    $kline,
-                                    $precisions,
-                                    $kline['close'] * 0.98,
-                                    $telegram,
-                                    false
-                                );
-
-                            } elseif ($change_price >= 1) {
-
-                                // закрыть позицию и открыть в шорт
-                                $position = $this->action(
-                                    $binance_futures,
-                                    $pair,
-                                    $current_position,
-                                    $position,
-                                    $kline,
-                                    $precisions,
-                                    $kline['close'] * 1.02,
-                                    $telegram,
-                                    true
-                                );
-
-                            }
+                            $telegram->send('Open default position' . "\n");
 
                         } else {
 
-                            // на сколько изменилась цена
-                            $change_price = ($kline['close'] - $position['entryPrice']) / $position['entryPrice'] * 100;
+                            $current_position = $position['positionAmt'] < 0 ? 'SELL' : 'BUY';
 
-                            // проверка на вхождение цены в диапазон
-                            if ($change_price <= -0.99) {
+                            if ($current_position == 'SELL') {
 
-                                // закрыть позицию и открыть в шорт
-                                $position = $this->action(
-                                    $binance_futures,
-                                    $pair,
-                                    $current_position,
-                                    $position,
-                                    $kline,
-                                    $precisions,
-                                    $kline['close'] * 1.02,
-                                    $telegram,
-                                    false
-                                );
+                                // на сколько изменилась цена
+                                $change_price = ($position['entryPrice'] - $kline['close']) / $position['entryPrice'] * 100;
 
-                            } elseif ($change_price >= 1) {
+                                // проверка на вхождение цены в диапазон
+                                if ($change_price <= -0.99) {
 
-                                // закрыть позицию и открыть в лонг
-                                $position = $this->action(
-                                    $binance_futures,
-                                    $pair,
-                                    $current_position,
-                                    $position,
-                                    $kline,
-                                    $precisions,
-                                    $kline['close'] * 0.98,
-                                    $telegram,
-                                    true
-                                );
+                                    // закрыть позицию и открыть в лонг
+                                    $position = $this->action(
+                                        $binance_futures,
+                                        $pair,
+                                        $current_position,
+                                        $position,
+                                        $kline,
+                                        $precisions,
+                                        $kline['close'] * 0.98,
+                                        $telegram,
+                                        false
+                                    );
+
+                                } elseif ($change_price >= 1) {
+
+                                    // закрыть позицию и открыть в шорт
+                                    $position = $this->action(
+                                        $binance_futures,
+                                        $pair,
+                                        $current_position,
+                                        $position,
+                                        $kline,
+                                        $precisions,
+                                        $kline['close'] * 1.02,
+                                        $telegram,
+                                        true
+                                    );
+
+                                }
+
+                            } else {
+
+                                // на сколько изменилась цена
+                                $change_price = ($kline['close'] - $position['entryPrice']) / $position['entryPrice'] * 100;
+
+                                // проверка на вхождение цены в диапазон
+                                if ($change_price <= -0.99) {
+
+                                    // закрыть позицию и открыть в шорт
+                                    $position = $this->action(
+                                        $binance_futures,
+                                        $pair,
+                                        $current_position,
+                                        $position,
+                                        $kline,
+                                        $precisions,
+                                        $kline['close'] * 1.02,
+                                        $telegram,
+                                        false
+                                    );
+
+                                } elseif ($change_price >= 1) {
+
+                                    // закрыть позицию и открыть в лонг
+                                    $position = $this->action(
+                                        $binance_futures,
+                                        $pair,
+                                        $current_position,
+                                        $position,
+                                        $kline,
+                                        $precisions,
+                                        $kline['close'] * 0.98,
+                                        $telegram,
+                                        true
+                                    );
+
+                                }
 
                             }
 
                         }
 
-                    }
+                    } else
+                        $telegram->send('Event time is not correct' . "\n");
 
                 }  else
-                    $telegram->send('Event time is not correct' . "\n");
+                    $telegram->send('$kline get false' . "\n");
 
             } else
                 $do = false;
@@ -268,17 +271,23 @@ class OnePercentageController extends Controller
             if (!$stop_market)
                 $telegram->send($pair . ' Stop loss is not set!!!' . "\n"); // отправляет сообщение в телеграм о том, что стоп лосс не выставлен
 
+            $new_position = $binance_futures->getPositionInformation($pair)[0];
+
             $telegram->send(
                 '*' . $pair . '*' . "\n" .
                 '*OPEN*' . "\n" .
                 'Position: ' . $open_position . "\n" .
-                'Entry price: ' . $position['entryPrice'] . "\n"
+                'Entry price: ' . $new_position['entryPrice'] . "\n"
             );
 
-        } else
-            $telegram->send($pair . ' For some reason order is not created!!! JSON: ' . $order . "\n"); // отправляет сообщение в телеграм об ошибке постановки ордера
+            return $new_position;
 
-        return $binance_futures->getPositionInformation($pair)[0];
+        }
+
+
+        $telegram->send($pair . ' [IMPORTANT!!!] For some reason order is not created!!! JSON: ' . $order . "\n"); // отправляет сообщение в телеграм об ошибке постановки ордера
+
+        return false;
 
     }
 

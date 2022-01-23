@@ -34,16 +34,17 @@ class BinanceFuturesSocket
 
             $kline = json_decode(self::$client->receive(), true);
 
-            return [
-                'open' => $kline['o'],
-                'close' => $kline['c'],
-                'high' => $kline['h'],
-                'low' => $kline['l'],
-                'volume' => $kline['v'],
-                'event_time' => $kline['E']
-            ];
+            if ($kline)
+                return [
+                    'open' => $kline['o'],
+                    'close' => $kline['c'],
+                    'high' => $kline['h'],
+                    'low' => $kline['l'],
+                    'volume' => $kline['v'],
+                    'event_time' => $kline['E']
+                ];
 
-            return true;
+            return false;
 
         } catch (ConnectionException $e) {
 
