@@ -68,7 +68,7 @@ class OnePercentageController extends Controller
                                 $position,
                                 $kline,
                                 $precisions,
-                                $kline['close'] * 0.98,
+                                $kline['close'] * 0.985,
                                 $telegram,
                                 true,
                                 false
@@ -96,7 +96,7 @@ class OnePercentageController extends Controller
                                         $position,
                                         $kline,
                                         $precisions,
-                                        $kline['close'] * 0.98,
+                                        $kline['close'] * 0.985,
                                         $telegram,
                                         false
                                     );
@@ -111,7 +111,7 @@ class OnePercentageController extends Controller
                                         $position,
                                         $kline,
                                         $precisions,
-                                        $kline['close'] * 1.02,
+                                        $kline['close'] * 1.015,
                                         $telegram,
                                         true
                                     );
@@ -134,7 +134,7 @@ class OnePercentageController extends Controller
                                         $position,
                                         $kline,
                                         $precisions,
-                                        $kline['close'] * 1.02,
+                                        $kline['close'] * 1.015,
                                         $telegram,
                                         false
                                     );
@@ -149,7 +149,7 @@ class OnePercentageController extends Controller
                                         $position,
                                         $kline,
                                         $precisions,
-                                        $kline['close'] * 0.98,
+                                        $kline['close'] * 0.985,
                                         $telegram,
                                         true
                                     );
