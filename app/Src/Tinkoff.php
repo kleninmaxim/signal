@@ -208,7 +208,7 @@ class Tinkoff
 
 
 
-    private function getHourCandles($figi, $interval = null)
+    public function getHourCandles($figi, $interval = null)
     {
 
         $interval = $interval ?? $this->interval;
