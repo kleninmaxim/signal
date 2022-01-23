@@ -46,7 +46,7 @@ class OnePercentageController extends Controller
 
                 $second = date('s');
 
-                if (in_array($second, [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]))
+                if (in_array($second, [0, 55]))
                     error_log(date('Y-m-d H:i:s') . '[INFO] work');
 
                 // проверка актуален ли этот скрипт по времени
