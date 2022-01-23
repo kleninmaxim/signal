@@ -26,6 +26,9 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
 
+        // One Percentage Algorithm
+        $schedule->call('\App\Http\Controllers\OnePercentageController@onePercentageStrategy')->hourly();
+
         // Главный алгоритм
         $schedule->call('\App\Http\Controllers\HineyController@hineyStrategy')->hourly();
 
@@ -33,7 +36,7 @@ class Kernel extends ConsoleKernel
         $schedule->call('\App\Http\Controllers\HineyController@cancelOrderWherePairNotInPosition')->hourlyAt(58);
 
         /* Статистика */
-        $schedule->call('\App\Http\Controllers\HineyController@statisticBalance')->hourlyAt(1);
+        //$schedule->call('\App\Http\Controllers\HineyController@statisticBalance')->hourlyAt(1);
 
 /*        $schedule->call('\App\Http\Controllers\TinkoffController@saveDayCloseCandleTime')
             ->weekdays()

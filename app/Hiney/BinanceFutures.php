@@ -26,7 +26,7 @@ class BinanceFutures
 
         $this->base_url = 'https://fapi.binance.com';
 
-        $this->telegram = new Telegram();
+        $this->telegram = new Telegram(false);
 
     }
 
