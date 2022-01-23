@@ -47,6 +47,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/support/supportStrategy', [\App\Http\Controllers\SupportController::class, 'supportStrategy']);
 
 
+    Route::get('/agressive/agressiveScalperStrategy', [\App\Http\Controllers\AgressiveScalperController::class, 'agressiveScalperStrategy']);
+
+
+    Route::get('/percentage/onePercentageStrategy', [\App\Http\Controllers\OnePercentageController::class, 'onePercentageStrategy']);
+
+
 
     Route::get('/hiney/test', [\App\Http\Controllers\HineyController::class, 'test']);
 
@@ -61,6 +67,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/binance/loadCandles', [\App\Http\Controllers\BinanceController::class, 'loadCandles']);
 
+    Route::get('/binance/coraWaveOld', [\App\Http\Controllers\BinanceController::class, 'coraWaveOld']);
+
     Route::get('/binance/coraWave', [\App\Http\Controllers\BinanceController::class, 'coraWave']);
 
     Route::get('/binance/ema', [\App\Http\Controllers\BinanceController::class, 'ema']);
@@ -72,6 +80,16 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/binance/testFivePercentageChangeStrategy', [\App\Http\Controllers\BinanceController::class, 'testFivePercentageChangeStrategy']);
 
     Route::get('/binance/processTokens', [\App\Http\Controllers\BinanceController::class, 'processTokens']);
+
+    Route::get('/binance/testHineyStrategy', [\App\Http\Controllers\BinanceController::class, 'testHineyStrategy']);
+
+    Route::get('/binance/count/{base}/{price}/{stop}', [\App\Http\Controllers\BinanceController::class, 'count']);
+
+    Route::get('/binance/random', [\App\Http\Controllers\BinanceController::class, 'random']);
+
+    Route::get('/binance/randomOnlyLong', [\App\Http\Controllers\BinanceController::class, 'randomOnlyLong']);
+
+    Route::get('/binance/testFivePercentageChangeStrategyWithSell', [\App\Http\Controllers\BinanceController::class, 'testFivePercentageChangeStrategyWithSell']);
 
 
     Route::get('/tinkoff/coraWave', [\App\Http\Controllers\TinkoffController::class, 'coraWave']);
@@ -89,6 +107,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/tinkoff/topCompany', [\App\Http\Controllers\TinkoffController::class, 'topCompany']);
 
     Route::get('/tinkoff/processShares', [\App\Http\Controllers\TinkoffController::class, 'processShares']);
+
+    Route::get('/tinkoff/testHineyMoneyFlow', [\App\Http\Controllers\TinkoffController::class, 'testHineyMoneyFlow']);
 
 
 
