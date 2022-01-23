@@ -259,7 +259,7 @@ class OnePercentageController extends Controller
                 $this->changePosition($open_position),
                 'STOP_MARKET',
                 options: [
-                    'stop_price' => $stop_loss,
+                    'stop_price' => Math::round($stop_loss, $precisions[$pair]['price_precision']),
                     'close_position' => 'true',
                     'working_type' => 'MARK_PRICE',
                 ]
