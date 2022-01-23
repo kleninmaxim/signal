@@ -111,6 +111,7 @@ class BinanceFutures
     }
 
     /*
+    LIMIT
     Array
     (
         [orderId] => 4887710177
@@ -135,6 +136,33 @@ class BinanceFutures
         [origType] => LIMIT
         [updateTime] => 1640719229063
     )
+
+    MARKET
+    Array
+    (
+        [orderId] => 41541317702
+        [symbol] => BTCUSDT
+        [status] => NEW
+        [clientOrderId] => 4mEbmHrbztcDpPhAiPEjtv
+        [price] => 0
+        [avgPrice] => 0.00000
+        [origQty] => 0.001
+        [executedQty] => 0
+        [cumQty] => 0
+        [cumQuote] => 0
+        [timeInForce] => GTC
+        [type] => MARKET
+        [reduceOnly] =>
+        [closePosition] =>
+        [side] => BUY
+        [positionSide] => BOTH
+        [stopPrice] => 0
+        [workingType] => CONTRACT_PRICE
+        [priceProtect] =>
+        [origType] => MARKET
+        [updateTime] => 1642938360997
+    )
+
     */
     public function createOrder(
         string $symbol,
@@ -169,6 +197,9 @@ class BinanceFutures
 
             if (isset($options['close_position']))
                 $query .= '&closePosition=' . $options['close_position'];
+
+            if (isset($options['reduce_only']))
+                $query .= '&reduceOnly=' . $options['reduce_only'];
 
             if (isset($options['working_type']))
                 $query .= '&workingType=' . $options['working_type'];
