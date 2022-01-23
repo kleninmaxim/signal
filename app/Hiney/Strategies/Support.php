@@ -15,19 +15,19 @@ class Support
     private string $side; // only SELL or BUY
     private string $buy = 'BUY';
     private string $sell = 'SELL';
-    private float $change = 0.2;
+    private float $change = 0.25; //necessary percentage change
 
     private float $loss = 5; // percentage risk of capital
     private array $position;
 
-    public function __construct($candles, $side)
+    public function __construct($candles, $side, $atr_parameter = 2)
     {
 
         $candles = array_values($candles);
 
         if (count($candles) >= 50) {
 
-            (new AtrBands())->put($candles);
+            (new AtrBands(atr_multiplier_upper: $atr_parameter, atr_multiplier_lower: $atr_parameter))->put($candles);
 
             $this->candles = array_reverse($candles);
 
