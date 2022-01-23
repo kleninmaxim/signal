@@ -107,10 +107,10 @@ class HineyController extends Controller
             if (Storage::disk($this->disk)->exists($this->file)) {
 
                 // создание телеграм для отправки сообщения
-                $telegram = new Telegram();
+                $telegram = new Telegram(true);
 
                 // объект для взаимодействия с фьючерсами binance через API
-                $binance_futures = new BinanceFutures();
+                $binance_futures = new BinanceFutures(true);
 
                 // берем текущий баланс
                 if ($balances = $binance_futures->getBalances()) {

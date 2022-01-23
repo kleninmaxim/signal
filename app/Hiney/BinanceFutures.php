@@ -17,16 +17,16 @@ class BinanceFutures
     private string $private_api;
     private Telegram $telegram;
 
-    public function __construct()
+    public function __construct($dima = false)
     {
 
-        $this->public_api = config('api.public_api');
+        $this->public_api = $dima ? config('api.public_api_dima') : config('api.public_api');
 
-        $this->private_api = config('api.private_api');
+        $this->private_api = $dima ? config('api.private_api_dima') : config('api.private_api');
 
         $this->base_url = 'https://fapi.binance.com';
 
-        $this->telegram = new Telegram(false);
+        $this->telegram = new Telegram();
 
     }
 

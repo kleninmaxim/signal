@@ -20,7 +20,7 @@ class OnePercentageController extends Controller
 
         $pair = 'ETHUSDT';
 
-        $telegram = new Telegram(false);
+        $telegram = new Telegram();
 
         $binance_futures = new BinanceFutures();
 
