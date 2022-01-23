@@ -219,7 +219,7 @@ class OnePercentageController extends Controller
                 $pair,
                 $this->changePosition($current_position),
                 'MARKET',
-                $position['positionAmt'],
+                abs($position['positionAmt']),
                 options: ['reduce_only' => 'true']
             );
 
