@@ -18,6 +18,8 @@ class OnePercentageController extends Controller
 
     private float $profit = 5;
 
+    private float $change_price = 1;
+
     public function onePercentageStrategy()
     {
 
@@ -44,28 +46,29 @@ class OnePercentageController extends Controller
             BinanceFuturesSocket::connect($pair);
 
             // модель для работы с сохранением уровней
-            $one_percentage_model = OnePercentage::where('pair', 'ETHUSDT')->first();
+            $one_percentage_model = OnePercentage::where('pair', $pair)->first();
 
             // если ее нет, то добавить в бд
             if (!$one_percentage_model)
                 $one_percentage_model = OnePercentage::create([
-                    'pair' => 'ETHUSDT',
+                    'pair' => $pair,
                     'level' => 0,
                 ]);
-
-            // необходимый уровень для контроля изменений
-            $level = $one_percentage_model->level;
 
             $do = true;
 
             while ($do) {
 
+                // запись инфо в логи
                 if (in_array(date('s'), [0, 55]))
-                    error_log(date('Y-m-d H:i:s') . '[INFO] work. Level: ' . $level);
+                    error_log(
+                        date('Y-m-d H:i:s') . '[INFO] work pair: ' . $pair . ' . Level: ' . $one_percentage_model->level
+                    );
 
                 // проверка актуален ли этот скрипт по времени
                 if ($this->checkTime($hour_start)) {
 
+                    // если получил свечи
                     if ($kline = BinanceFuturesSocket::run()) {
 
                         // event time is not very old
@@ -88,9 +91,8 @@ class OnePercentageController extends Controller
                                     false
                                 );
 
-                                $level = 0;
-
-                                $one_percentage_model->level = $level;
+                                // обнулить уровень и сохранить
+                                $one_percentage_model->level = 0;
 
                                 $one_percentage_model->save();
 
@@ -98,14 +100,16 @@ class OnePercentageController extends Controller
 
                             } else {
 
+                                // узнать о текущей позиции
                                 $current_position = $position['positionAmt'] < 0 ? 'SELL' : 'BUY';
 
+                                // посчитать изменение
                                 $change_price = ($current_position == 'SELL')
                                     ? ($position['entryPrice'] - $kline['close']) / $position['entryPrice'] * 100
                                     : ($kline['close'] - $position['entryPrice']) / $position['entryPrice'] * 100;
 
                                 // проверка на вхождение цены в диапазон
-                                if ($change_price <= $level - 1 + 0.01) {
+                                if ($change_price <= $one_percentage_model->level - $this->change_price + 0.01) {
 
                                     // закрыть позицию и открыть в противоположную сторону
                                     $position = $this->action(
@@ -121,17 +125,14 @@ class OnePercentageController extends Controller
                                     );
 
                                     // обнулить позицию
-                                    $level = 0;
-
-                                    $one_percentage_model->level = $level;
+                                    $one_percentage_model->level = 0;
 
                                     $one_percentage_model->save();
 
-                                } elseif ($change_price >= $level + 1) {
+                                } elseif ($change_price >= $one_percentage_model->level + $this->change_price) {
 
-                                    $level++; // увеличить уровень
-
-                                    $one_percentage_model->level = $level;
+                                    // перейти на следующий уровень
+                                    $one_percentage_model->level += $this->change_price;
 
                                     $one_percentage_model->save();
 
