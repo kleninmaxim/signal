@@ -414,7 +414,7 @@ class HineyController extends Controller
             'RVNUSDT',
             'SANDUSDT',
             'SCUSDT',
-            'SOLUSDT',
+            //'SOLUSDT',
             //'SUSHIUSDT',
             //'THETAUSDT',
             'TRXUSDT',
