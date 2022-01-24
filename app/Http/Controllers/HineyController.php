@@ -246,7 +246,7 @@ class HineyController extends Controller
     public function statisticBalance()
     {
 
-        if ($balances = (new BinanceFutures())->getBalances()) {
+        if ($balances = (new BinanceFutures(true))->getBalances()) {
 
             Balance::create([
                 'total_wallet_balance' => $balances['totalWalletBalance'],
@@ -275,7 +275,7 @@ class HineyController extends Controller
         $pairs = $this->getPairs();
 
         // объект для взаимодействия с фьючерсами binance через API
-        $binance_futures = new BinanceFutures();
+        $binance_futures = new BinanceFutures(true);
 
         // берем текущий баланс, берем все рынке вне позиции, проходимся по всем рынкам, если пара не в позиции и есть открытые ордара - закрыть их
         if ($balances = $binance_futures->getBalances())
@@ -292,7 +292,7 @@ class HineyController extends Controller
     public function saveToFileContractsPrecisions()
     {
 
-        $symbols = (new BinanceFutures())->getContracts()['symbols'];
+        $symbols = (new BinanceFutures(true))->getContracts()['symbols'];
 
         if (isset($symbols[0]['symbol'])) {
 
@@ -313,7 +313,7 @@ class HineyController extends Controller
     {
 
         $open_orders = Cache::remember('open_orders', 10, function () {
-            return array_filter((new BinanceFutures())->getPositionInformation(), function($open_order) {
+            return array_filter((new BinanceFutures(true))->getPositionInformation(), function($open_order) {
                 return $open_order['notional'] != 0;
             });
         });
