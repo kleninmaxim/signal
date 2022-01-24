@@ -61,7 +61,7 @@ class OnePercentageController extends Controller
             while ($do) {
 
                 if (in_array(date('s'), [0, 55]))
-                    error_log(date('Y-m-d H:i:s') . '[INFO] work');
+                    error_log(date('Y-m-d H:i:s') . '[INFO] work. Level: ' . $level);
 
                 // проверка актуален ли этот скрипт по времени
                 if ($this->checkTime($hour_start)) {
