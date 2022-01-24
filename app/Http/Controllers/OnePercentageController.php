@@ -223,7 +223,7 @@ class OnePercentageController extends Controller
                 '*' . $pair . '*' . "\n" .
                 '*OPEN*' . "\n" .
                 'Position: ' . $open_position . "\n" .
-                'Entry price: ' . $new_position['entryPrice'] . "\n"
+                'Entry price: ' . Math::round($new_position['entryPrice'], $precisions[$pair]['price_precision']) . "\n"
             );
 
             return $new_position;
