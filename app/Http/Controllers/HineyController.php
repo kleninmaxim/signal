@@ -25,21 +25,6 @@ class HineyController extends Controller
     public function test()
     {
 
-        $one_percentage_model = OnePercentage::where('pair', 'ETHUSDT')->first();
-
-        if (!$one_percentage_model)
-            $one_percentage_model = OnePercentage::create([
-                'pair' => 'ETHUSDT',
-                'level' => 0,
-            ]);
-
-        $one_percentage_model->level = 10;
-
-        $one_percentage_model->save();
-
-
-        debug($one_percentage_model->level, true);
-
         //debug(OnePercentage::where('pair', 'ETHUSDT')->first()->toArray()['level'], true);
 
         //debug((new BinanceFutures())->createOrder('BTCUSDT', 'SELL', 'MARKET', 0.001, options: ['reduce_only' => 'true']));
@@ -381,7 +366,7 @@ class HineyController extends Controller
             'ARUSDT',
             'ATOMUSDT',
             'AUDIOUSDT',
-            'AVAXUSDT',
+            //'AVAXUSDT',
             'AXSUSDT',
             'BATUSDT',
             'BCHUSDT',
