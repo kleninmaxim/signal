@@ -16,7 +16,9 @@ class Telegram
 
         try {
 
-            $this->telegram = new Api(config('api.telegram_token_rocket'));
+            $this->telegram = new Api(
+                $dima ? config('api.telegram_token_rocket') : config('api.telegram_token_binance')
+            );
 
             $this->chat_ids =  $dima
                 ? [config('api.telegram_user_id'), config('api.telegram_dima_id')]
