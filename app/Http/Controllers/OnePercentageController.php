@@ -219,14 +219,6 @@ class OnePercentageController extends Controller
 
             $new_position = $binance_futures->getPositionInformation($pair)[0];
 
-            if ($close_position)
-                $telegram->send(
-                    '*' . $pair . '*' . "\n" .
-                    '*CLOSE*' . "\n" .
-                    'Position: ' . $current_position . "\n" .
-                    'Entry price: ' . $position['entryPrice'] . "\n"
-                );
-
             $telegram->send(
                 '*' . $pair . '*' . "\n" .
                 '*OPEN*' . "\n" .
