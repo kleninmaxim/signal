@@ -163,8 +163,7 @@ class OnePercentageController extends Controller
                         } else
                             $telegram->send('Event time is not correct' . "\n");
 
-                    }  else
-                        $telegram->send('$kline get false' . "\n");
+                    }
 
                 } else
                     $do = false;
