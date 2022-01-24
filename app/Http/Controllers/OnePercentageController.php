@@ -6,6 +6,7 @@ use App\Hiney\BinanceFutures;
 use App\Hiney\Src\Math;
 use App\Hiney\Src\Telegram;
 use App\Hiney\BinanceFuturesSocket;
+use App\Models\OnePercentage;
 use Illuminate\Support\Facades\Storage;
 
 class OnePercentageController extends Controller
@@ -42,8 +43,18 @@ class OnePercentageController extends Controller
             // подключение по сокету
             BinanceFuturesSocket::connect($pair);
 
+            // модель для работы с сохранением уровней
+            $one_percentage_model = OnePercentage::where('pair', 'ETHUSDT')->first();
+
+            // если ее нет, то добавить в бд
+            if (!$one_percentage_model)
+                $one_percentage_model = OnePercentage::create([
+                    'pair' => 'ETHUSDT',
+                    'level' => 0,
+                ]);
+
             // необходимый уровень для контроля изменений
-            $level = 0;
+            $level = $one_percentage_model->level;
 
             $do = true;
 
@@ -79,6 +90,10 @@ class OnePercentageController extends Controller
 
                                 $level = 0;
 
+                                $one_percentage_model->level = $level;
+
+                                $one_percentage_model->save();
+
                                 $telegram->send('Open default position' . "\n");
 
                             } else {
@@ -108,7 +123,19 @@ class OnePercentageController extends Controller
                                     // обнулить позицию
                                     $level = 0;
 
-                                } elseif ($change_price >= $level + 1) $level++; // увеличить уровень
+                                    $one_percentage_model->level = $level;
+
+                                    $one_percentage_model->save();
+
+                                } elseif ($change_price >= $level + 1) {
+
+                                    $level++; // увеличить уровень
+
+                                    $one_percentage_model->level = $level;
+
+                                    $one_percentage_model->save();
+
+                                }
 
                             }
 
