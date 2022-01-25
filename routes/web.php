@@ -50,7 +50,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/agressive/agressiveScalperStrategy', [\App\Http\Controllers\AgressiveScalperController::class, 'agressiveScalperStrategy']);
 
 
-    Route::get('/percentage/onePercentageStrategy', [\App\Http\Controllers\OnePercentageController::class, 'onePercentageStrategy']);
+    Route::get('/percentage/shibOnePercentageStrategy', [\App\Http\Controllers\OnePercentageController::class, 'shibOnePercentageStrategy']);
 
 
 

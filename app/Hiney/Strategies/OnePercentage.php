@@ -6,7 +6,6 @@ use App\Hiney\BinanceFutures;
 use App\Hiney\BinanceFuturesSocket;
 use App\Hiney\Src\Math;
 use App\Hiney\Src\Telegram;
-use App\Models\ErrorLog;
 use Illuminate\Support\Facades\Storage;
 
 class OnePercentage
@@ -155,12 +154,7 @@ class OnePercentage
 
                             usleep(10000);
 
-                            error_log('Event time is: ' . $kline['event_time'] . ' Time: ' . time());
-
-                            ErrorLog::create([
-                                'title' => 'Event time is not correct',
-                                'message' => 'Event time is: ' . $kline['event_time'] . ' Time: ' . time()
-                            ]);
+                            error_log('Pair: . ' . $this->pair . 'Event time is: ' . $kline['event_time'] . ' Time: ' . time());
 
                         }
 
