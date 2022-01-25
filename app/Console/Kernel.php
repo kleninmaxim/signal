@@ -28,7 +28,7 @@ class Kernel extends ConsoleKernel
 
         // One Percentage Algorithm
         $schedule->call('\App\Http\Controllers\OnePercentageController@ethOnePercentageStrategy')->hourly();
-        //$schedule->call('\App\Http\Controllers\OnePercentageController@shibOnePercentageStrategy')->hourly();
+        $schedule->call('\App\Http\Controllers\Kernels\ShibOnePercentageController@shibOnePercentageStrategy')->hourly();
 
         // Главный алгоритм
         $schedule->call('\App\Http\Controllers\HineyController@hineyStrategy')->hourly();

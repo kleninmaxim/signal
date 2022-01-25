@@ -14,11 +14,4 @@ class OnePercentageController extends Controller
 
     }
 
-    public function shibOnePercentageStrategy()
-    {
-
-        (new OnePercentage('1000SHIBUSDT', 1, 1))->run();
-
-    }
-
 }
