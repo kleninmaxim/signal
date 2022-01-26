@@ -25,7 +25,7 @@ function debug($arr, $die = false)
 
 Route::get('/', function () {
 
-    return view('welcome');
+    //return view('welcome');
 
 });
 
