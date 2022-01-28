@@ -136,6 +136,10 @@ class OnePercentage
 
                         }
 
+                        // запись инфо в консоль
+                        if (in_array(date('s'), [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50]))
+                            echo date('Y-m-d H:i:s') . '[INFO] work pair: ' . $this->pair . ' . Level: ' . $one_percentage_model->level . PHP_EOL;
+
                     } else {
 
                         usleep(10000);
