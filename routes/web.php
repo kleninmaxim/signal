@@ -52,6 +52,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/percentage/shibOnePercentageStrategy', [\App\Http\Controllers\OnePercentageController::class, 'shibOnePercentageStrategy']);
 
+    Route::get('/bollinger/test', [\App\Http\Controllers\BollingerController::class, 'test']);
+
 
 
     Route::get('/hiney/test', [\App\Http\Controllers\HineyController::class, 'test']);

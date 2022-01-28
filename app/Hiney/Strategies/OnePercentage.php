@@ -49,9 +49,6 @@ class OnePercentage
         // взять информацию о текущей позиции
         if ($position = $binance_futures->getPositionInformation($this->pair)[0]) {
 
-            // начало работы скрипта
-            $hour_start = date('H');
-
             // подключение по сокету
             BinanceFuturesSocket::connect($this->pair);
 
@@ -65,103 +62,89 @@ class OnePercentage
                     'level' => 0,
                 ]);
 
-            $do = true;
+            while (true) {
 
-            while ($do) {
+                // если получил свечи
+                if ($kline = BinanceFuturesSocket::run()) {
 
-                // запись инфо в логи
-                if (in_array(date('s'), [0, 55]))
-                    error_log(
-                        date('Y-m-d H:i:s') . '[INFO] work pair: ' . $this->pair . ' . Level: ' . $one_percentage_model->level
-                    );
+                    // event time is not very old
+                    if (abs($kline['event_time'] / 1000 - time()) <= 5) {
 
-                // проверка актуален ли этот скрипт по времени
-                if ($this->checkTime($hour_start)) {
+                        // если позиция не открыта
+                        if (empty($position) || $position['positionAmt'] == 0) {
 
-                    // если получил свечи
-                    if ($kline = BinanceFuturesSocket::run()) {
+                            // открываем позицию по умолчанию
+                            $position = $this->action(
+                                $binance_futures,
+                                $this->pair,
+                                'BUY',
+                                $position,
+                                $kline,
+                                $precisions,
+                                $kline['close'] * 0.985,
+                                $telegram,
+                                true,
+                                false
+                            );
 
-                        // event time is not very old
-                        if (abs($kline['event_time'] / 1000 - time()) <= 5) {
+                            // обнулить уровень и сохранить
+                            $one_percentage_model->level = 0;
 
-                            // если позиция не открыта
-                            if (empty($position) || $position['positionAmt'] == 0) {
+                            $one_percentage_model->save();
 
-                                // открываем позицию по умолчанию
+                            $telegram->send('Open default position' . "\n");
+
+                        } else {
+
+                            // узнать о текущей позиции
+                            $current_position = $position['positionAmt'] < 0 ? 'SELL' : 'BUY';
+
+                            // посчитать изменение
+                            $change_price = ($current_position == 'SELL')
+                                ? ($position['entryPrice'] - $kline['close']) / $position['entryPrice'] * 100
+                                : ($kline['close'] - $position['entryPrice']) / $position['entryPrice'] * 100;
+
+                            // проверка на вхождение цены в диапазон
+                            if ($change_price <= $one_percentage_model->level - $this->change_price + 0.01) {
+
+                                // закрыть позицию и открыть в противоположную сторону
                                 $position = $this->action(
                                     $binance_futures,
                                     $this->pair,
-                                    'BUY',
+                                    $current_position,
                                     $position,
                                     $kline,
                                     $precisions,
-                                    $kline['close'] * 0.985,
+                                    ($current_position == 'SELL') ? $kline['close'] * 0.985 : $kline['close'] * 1.015,
                                     $telegram,
-                                    true,
                                     false
                                 );
 
-                                // обнулить уровень и сохранить
+                                // обнулить позицию
                                 $one_percentage_model->level = 0;
 
                                 $one_percentage_model->save();
 
-                                $telegram->send('Open default position' . "\n");
+                            } elseif ($change_price >= $one_percentage_model->level + $this->change_price) {
 
-                            } else {
+                                // перейти на следующий уровень
+                                $one_percentage_model->level += $this->change_price;
 
-                                // узнать о текущей позиции
-                                $current_position = $position['positionAmt'] < 0 ? 'SELL' : 'BUY';
-
-                                // посчитать изменение
-                                $change_price = ($current_position == 'SELL')
-                                    ? ($position['entryPrice'] - $kline['close']) / $position['entryPrice'] * 100
-                                    : ($kline['close'] - $position['entryPrice']) / $position['entryPrice'] * 100;
-
-                                // проверка на вхождение цены в диапазон
-                                if ($change_price <= $one_percentage_model->level - $this->change_price + 0.01) {
-
-                                    // закрыть позицию и открыть в противоположную сторону
-                                    $position = $this->action(
-                                        $binance_futures,
-                                        $this->pair,
-                                        $current_position,
-                                        $position,
-                                        $kline,
-                                        $precisions,
-                                        ($current_position == 'SELL') ? $kline['close'] * 0.985 : $kline['close'] * 1.015,
-                                        $telegram,
-                                        false
-                                    );
-
-                                    // обнулить позицию
-                                    $one_percentage_model->level = 0;
-
-                                    $one_percentage_model->save();
-
-                                } elseif ($change_price >= $one_percentage_model->level + $this->change_price) {
-
-                                    // перейти на следующий уровень
-                                    $one_percentage_model->level += $this->change_price;
-
-                                    $one_percentage_model->save();
-
-                                }
+                                $one_percentage_model->save();
 
                             }
 
-                        } else {
-
-                            usleep(10000);
-
-                            error_log('Pair: . ' . $this->pair . 'Event time is: ' . $kline['event_time'] . ' Time: ' . time());
-
                         }
+
+                    } else {
+
+                        usleep(10000);
+
+                        error_log('Pair: . ' . $this->pair . 'Event time is: ' . $kline['event_time'] . ' Time: ' . time());
 
                     }
 
-                } else
-                    $do = false;
+                }
 
             }
 
@@ -279,13 +262,6 @@ class OnePercentage
     {
 
         return ($position == 'SELL') ? 'BUY' : 'SELL';
-
-    }
-
-    private function checkTime($hour_start): bool
-    {
-
-        return ($hour_start == date('H')) && (date('i') != 59 || date('s') < 58);
 
     }
 
