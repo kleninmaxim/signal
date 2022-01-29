@@ -11,7 +11,7 @@ foreach ($pairs as $pair) {
 
     \App\Hiney\Src\Pm2::start(
         __DIR__ . '/one_percentage_strategy.php',
-        '[One Percentage Strategy]',
+        '[One Percentage Strategy] ' . $pair['pair'],
         'Strategy',
         args: '"' . $pair['pair'] . '"' . ' ' . '"' . $pair['profit'] . '"' . ' ' . '"' . $pair['change_price'] . '"'
     );
