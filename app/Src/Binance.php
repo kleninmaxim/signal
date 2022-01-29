@@ -63,6 +63,24 @@ class Binance
 
     }
 
+    public function updateCandles($pair)
+    {
+
+        $timeframe = '1M';
+
+        $pair = BinancePair::where('pair', $pair)->first();
+
+        $candle = BinancePair::where('pair', $pair->pair)->first()
+            ->getCandles($timeframe)->orderByDesc('time_start')
+            ->select('time_start')
+            ->first()->toArray()['time_start'];
+
+        $this->recordData($pair, $timeframe, true, (strtotime($candle) + 1) * 1000);
+
+        return true;
+
+    }
+
     public function getCandles($symbol, $timeframe, $desc = true)
     {
         $skip = 0;
@@ -110,10 +128,8 @@ class Binance
 
 
 
-    private function recordData($pair, $timeframe, $notify)
+    private function recordData($pair, $timeframe, $notify, $time_start = 1503003600000)
     {
-
-        $time_start = 1503003600000;
 
         do {
 

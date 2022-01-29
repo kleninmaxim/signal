@@ -1519,6 +1519,13 @@ class BinanceController extends Controller
 
     }
 
+    public function updateCandles()
+    {
+
+        return $this->binance->updateCandles('BTC/USDT');
+
+    }
+
     public function allTickers()
     {
 

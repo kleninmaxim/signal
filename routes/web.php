@@ -69,6 +69,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/binance/loadCandles', [\App\Http\Controllers\BinanceController::class, 'loadCandles']);
 
+    Route::get('/binance/updateCandles', [\App\Http\Controllers\BinanceController::class, 'updateCandles']);
+
     Route::get('/binance/coraWaveOld', [\App\Http\Controllers\BinanceController::class, 'coraWaveOld']);
 
     Route::get('/binance/coraWave', [\App\Http\Controllers\BinanceController::class, 'coraWave']);
