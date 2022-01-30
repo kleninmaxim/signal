@@ -5,7 +5,7 @@ require_once dirname(__DIR__) . '/public/index.php';
 $pairs = [
     ['pair' => 'ETHUSDT', 'profit' => 4, 'change_price' => 1],
     ['pair' => '1000SHIBUSDT', 'profit' => 1, 'change_price' => 1],
-    ['pair' => 'PEOPLEUSDT', 'profit' => 1, 'change_price' => 2],
+    //['pair' => 'PEOPLEUSDT', 'profit' => 1, 'change_price' => 2],
 ];
 
 foreach ($pairs as $pair) {
