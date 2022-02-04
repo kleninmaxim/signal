@@ -29,11 +29,10 @@ class Kernel extends ConsoleKernel
         // One Percentage Algorithm
         //$schedule->call('\App\Http\Controllers\OnePercentageController@ethOnePercentageStrategy')->hourly();
 
-        // Главный алгоритм
-        $schedule->call('\App\Http\Controllers\HineyController@hineyStrategy')->hourly();
 
-        // Отменить все ордера в которых пары находятся вне позиции
-        $schedule->call('\App\Http\Controllers\HineyController@cancelOrderWherePairNotInPosition')->hourlyAt(58);
+        //Главный алгоритм The hiney money flow и отменить все ордера в которых пары находятся вне позиции
+        //$schedule->call('\App\Http\Controllers\HineyController@hineyStrategy')->hourly();
+        //$schedule->call('\App\Http\Controllers\HineyController@cancelOrderWherePairNotInPosition')->hourlyAt(58);
 
         /* Статистика */
         //$schedule->call('\App\Http\Controllers\HineyController@statisticBalance')->hourlyAt(1);
