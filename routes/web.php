@@ -54,6 +54,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/bollinger/test', [\App\Http\Controllers\BollingerController::class, 'test']);
 
+    Route::get('/keltner/test', [\App\Http\Controllers\KeltnerChannelsController::class, 'test']);
+
+    Route::get('/keltner/keltnerStrategy', [\App\Http\Controllers\KeltnerChannelsController::class, 'keltnerStrategy']);
+
 
 
     Route::get('/hiney/test', [\App\Http\Controllers\HineyController::class, 'test']);

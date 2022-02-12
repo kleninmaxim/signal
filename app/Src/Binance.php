@@ -83,8 +83,9 @@ class Binance
 
     public function getCandles($symbol, $timeframe, $desc = true)
     {
+
         $skip = 0;
-        $take = 50000;
+        $take = 200000;
 
         if ($desc) {
 
