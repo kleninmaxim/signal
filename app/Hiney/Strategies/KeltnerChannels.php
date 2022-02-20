@@ -3,6 +3,7 @@
 namespace App\Hiney\Strategies;
 
 use App\Hiney\Indicators\KeltnerChannels as Keltner;
+use App\Hiney\Src\Telegram;
 
 class KeltnerChannels
 {
@@ -25,6 +26,9 @@ class KeltnerChannels
         } else {
 
             // оповестить об ошибке
+            (new Telegram())->send(
+                'Candles less than 50!' . "\n"
+            );
 
         }
 
@@ -33,14 +37,39 @@ class KeltnerChannels
     public function test(): bool|array
     {
 
-        return $this->candles;
+        if (isset($this->candles))
+            return $this->candles;
+
+        return false;
 
     }
 
     public function run(): bool|array
     {
 
-        return $this->candles;
+        if (isset($this->candles)) {
+
+            $current_candle = array_shift($this->candles);;
+
+            if ($current_candle['close'] <= $current_candle['keltner_channel_lower']) {
+
+                return [
+                    'position' => 'sell',
+                    'price' => $current_candle['high']
+                ];
+
+            } elseif ($current_candle['close'] >= $current_candle['keltner_channel_upper']) {
+
+                return [
+                    'position' => 'buy',
+                    'price' => $current_candle['high']
+                ];
+
+            }
+
+        }
+
+        return false;
 
     }
 
