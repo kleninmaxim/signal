@@ -47,8 +47,8 @@ class KeltnerChannelsController extends Controller
             $telegram->send(
                 '*Keltner*' . "\n" .
                 '*' . $pair . '*' . "\n" .
-                'Position: *' . $strategy['position'] . "\n" .
-                'Price cross: *' . $strategy['price'] . '*' . "\n"
+                'Position: *' . $strategy['position'] . '*' . "\n" .
+                'Price have to cross: *' . $strategy['price'] . '*' . "\n"
             );
 
         }
